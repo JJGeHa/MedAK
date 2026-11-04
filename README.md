@@ -1,49 +1,160 @@
+<div align="center">
+
 # MedAK
 
-A free, open-source replacement for Skattestyrelsen's Excel template **AKSA 2278**
-(`aksa2278-salg-af-aktier.xlsm` and `aksa2278-likvidationsprovenu.xlsm`).
+**Report employee shares to SKAT without wrestling a 62-column spreadsheet.**
 
-Companies use the template to build the fixed-width `.txt` file they upload to
-TastSelv Erhverv (Øvrige indberetninger → Værdipapirer) or send via FTPs Gateway.
-MedAK does the same job, but in a friendlier way:
+A free, open-source alternative to Skattestyrelsen's AKSA 2278 Excel template.
+Describe what happened (a grant, a buyback, an investment, a payout); MedAK writes the file.
 
-- you describe what happened (a grant, a buyback, a payout), and the app works out SKAT's codes
-- shared facts are entered once, not repeated on every row
-- in Danish and English
-- runs in the browser on any OS (the Excel template is Windows-only in practice)
-- accepts normal numbers (`15` shares, `125,75` kr.) instead of `15000000` and øre
-- checks the data against the rules SKAT will reject on, before you upload
-- never sends personal data (CPR numbers) anywhere: everything stays on your device
+![Status: early development](https://img.shields.io/badge/status-early%20development-orange)
+![Languages: Dansk | English](https://img.shields.io/badge/sprog%20%2F%20language-Dansk%20%7C%20English-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-no%20runtime%20deps-3178c6)
 
-## Report types covered
+[Why](#why) · [How it works](#how-it-works) · [Report types](#report-types) · [Status](#status) · [Development](#development) · [Docs](#documentation) · [På dansk](#på-dansk)
 
-All four report types share the same record layout ("dataindivid 2278"):
+</div>
 
-| | Report | Legal basis | SKAT guidance |
+---
+
+## Why
+
+Danish companies that give employees shares, options or warrants must report each
+acquisition to Skattestyrelsen (SKAT) every year. The same applies when a company buys back
+its own shares, receives capital that qualifies for investorfradrag, or pays out liquidation
+proceeds. SKAT accepts this as a fixed-width text file (*dataindivid 2278*), and offers an
+Excel template with macros to produce it.
+
+That template makes you think like the file format:
+
+| In SKAT's Excel template | In MedAK |
+|---|---|
+| 62 columns per person, mostly codes | A few plain-language questions per event, then 3–4 values per person |
+| Share name, date, price and scheme retyped on every row | Entered once per event |
+| `KOEBSALGKOD = H`, `PAPIRTYPEKOD = 1` | "Shares granted under the new § 7 P scheme" |
+| 15 shares typed as `15000000`, 18.862,50 kr. as `1886250` | Type `15` and `18.862,50` |
+| The same amount entered in five fields | Calculated |
+| Errors appear at "Dan fil", or later as "Fejl 207" from SKAT | Explained as you type, in Danish or English |
+| Too-long values silently cut off | Never truncated; you're told what to fix |
+| Corrections: re-file the old line with minus, then the new one | One "correct this" action |
+| Windows + Excel + macros | Any modern browser |
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["You describe what happened<br/><i>grant · exercise · buyback · round · payout</i>"] --> B["MedAK derives SKAT's codes<br/>and fills calculated fields"]
+    B --> C["Checks against SKAT's rules<br/>before you upload"]
+    C --> D["Download the .txt file"]
+    D --> E["Upload in TastSelv Erhverv<br/><i>Øvrige indberetninger → Værdipapirer</i>"]
+```
+
+**Your data stays on your device.** Everything runs in your browser: no server, no account,
+no upload to us. CPR numbers never leave your computer. You save your work as a file you
+keep, and open it again next year.
+
+**Built around events, not rows.** A grant to 40 employees is one event (date, scheme,
+share, price) plus 40 short entries (who, how many shares, what they paid, what was taxed
+through payroll). People are kept in a register, so returning employees are entered once.
+
+**Danish and English throughout.** The app, its help texts and its checks speak both
+languages, with SKAT's Danish terms shown alongside so you can match them to SKAT's guidance.
+MedAK is built for Danish start-ups and for Danish subsidiaries of international groups
+(RSUs from a foreign parent, foreign currencies and exchange rates) alike.
+
+## Report types
+
+All four report types below use the same file format, so MedAK supports them with one engine.
+
+| | Report | Legal basis | Status |
 |---|---|---|---|
-| A | Company buys back its own shares (erhvervelse af egne aktier) | SIL § 28 | [Vejledning](https://info.skat.dk/data.aspx?oid=2289412) |
-| B | Employee shares (medarbejderaktier, købe-/tegningsretter) | SIL § 8; LL §§ 7 P, 16, 28 | [Vejledning](https://info.skat.dk/data.aspx?oid=2289412) |
-| C | Capital contributions giving investor deduction (investorfradrag) | SIL §§ 29 a, 29 b | [Vejledning](https://info.skat.dk/data.aspx?oid=16096) |
-| D | Liquidation proceeds (likvidationsprovenu) | SIL § 28 a | [Vejledning](https://info.skat.dk/data.aspx?oid=1918) |
+| **B** | Employee shares, options, warrants, RSUs, matching shares | SIL § 8; LL §§ 7 P, 16, 28 | First guided flow, in design |
+| **A** | Company buying back its own shares | SIL § 28 | Engine ready |
+| **C** | Capital contributions giving investorfradrag | SIL §§ 29 a, 29 b | Engine ready |
+| **D** | Liquidation proceeds | SIL § 28 a | Engine ready. See note below |
+
+> **Liquidation proceeds:** for most liquidations, SKAT's own single-entry form
+> (*Enkeltindberetning* in TastSelv Erhverv) is the simplest route, and MedAK will point you
+> there. A file is needed only when the shares are listed, or when someone other than the
+> liquidated company paid out the proceeds.
 
 ## Status
 
-- **Engine** ([packages/engine](packages/engine)): done. Reads, writes and validates 2278 files
-  for all four report types. No web app yet; its UX is being designed (see
-  [docs/data-model.md](docs/data-model.md)).
+MedAK is in early development.
+
+- [x] Reverse-engineered SKAT's templates and guidance ([format spec](docs/2278-format.md))
+- [x] Engine: read, write and validate 2278 files for all four report types
+- [x] Validation mapped to SKAT's error codes, with Danish and English messages
+- [ ] Guided web app for employee shares (B)
+- [ ] Corrections of earlier reports
+- [ ] Guided flows for A, C and D
+- [ ] Confirm encoding and file details with SKAT (eKapital), and test against real uploads
+
+## Development
+
+Requires Node.js 22.12 or later.
 
 ```bash
 npm install
-npm test
+npm test            # Vitest
+npm run typecheck   # TypeScript
 ```
 
-- [docs/decisions.md](docs/decisions.md): goals, scope and principles
-- [docs/data-model.md](docs/data-model.md): which values are entered once per report, event or person
-- [docs/2278-format.md](docs/2278-format.md): the file format, reverse-engineered from the template and the guidance
-- [docs/validation-rules.md](docs/validation-rules.md): what to check before upload
+```
+packages/
+  engine/           Reads, writes and validates 2278 files. No runtime dependencies.
+docs/               Format spec, validation rules, data model, decisions
+```
 
-## Disclaimer
+Using the engine directly:
 
-MedAK is not made by or affiliated with Skattestyrelsen. The reporting company
-(den indberetningspligtige) remains responsible for the correctness and timeliness
-of its report, whichever tool is used to produce it.
+```ts
+import { applyScenario, validateRows, formatIssue, buildFile, TEMPLATE_VERSION } from "@medak/engine";
+
+const rows = [applyScenario(row, "B")];
+const issues = validateRows(rows, { scenario: "B", incomeYear: "2026" });
+issues.forEach((issue) => console.log(formatIssue(issue, "en")));
+
+const file = buildFile({ sender, rows, version: TEMPLATE_VERSION.B });
+```
+
+See [packages/engine](packages/engine) for details.
+
+## Documentation
+
+| Document | What's in it |
+|---|---|
+| [2278-format.md](docs/2278-format.md) | The file format, field by field, and how SKAT's template formats values |
+| [validation-rules.md](docs/validation-rules.md) | Every check, its severity, and the SKAT error code it anticipates |
+| [data-model.md](docs/data-model.md) | Which values are entered once per report, event or person |
+| [decisions.md](docs/decisions.md) | Scope, principles, stack and UX decisions |
+
+Sources: SKAT's guidance for
+[medarbejderaktier and egne aktier](https://info.skat.dk/data.aspx?oid=2289412),
+[investorfradrag](https://info.skat.dk/data.aspx?oid=16096) and
+[likvidationsprovenu](https://info.skat.dk/data.aspx?oid=1918), and the templates on
+[skat.dk](https://skat.dk/erhverv/ekapital/vaerdipapirer/selskabers-indberetning-af-medarbejderaktier-og-koeb-af-egne-aktier).
+
+## Important
+
+- **Not tax advice.** MedAK helps you produce a correctly formatted report. Its explanations
+  of whether and what to report are general information only. If you are in any doubt about
+  your situation, seek professional advice.
+- **You remain responsible.** The reporting company is responsible for the correctness and
+  timeliness of its report, whichever tool is used to produce it.
+- **Not affiliated with Skattestyrelsen.** MedAK is an independent project.
+
+## Contributing
+
+Issues and pull requests are welcome. Especially valuable: files produced by SKAT's Excel
+template (with personal data removed) to test against, and experience from real uploads.
+
+## På dansk
+
+MedAK er et gratis alternativ til Skattestyrelsens Excel-skabelon AKSA 2278 til indberetning
+af medarbejderaktier, selskabers køb af egne aktier, investorfradrag og likvidationsprovenu.
+I stedet for 62 kolonner pr. person beskriver du, hvad der er sket, f.eks. en tildeling af
+aktier, og MedAK danner filen, som du uploader i TastSelv Erhverv. Alt foregår i din browser,
+og dine data (herunder cpr-numre) forlader aldrig din computer. Appen er på dansk og engelsk.
+
+MedAK yder ikke skatterådgivning. Er du i tvivl om din situation, så søg professionel rådgivning.

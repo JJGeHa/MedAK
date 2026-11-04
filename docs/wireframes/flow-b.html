@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedAK Employee Shares Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a calm three-column tool. Steps on the left, one task in the middle,
+   help and "do I need to report?" on the right. Design notes are yellow stickies. */
+:root {
+  --paper: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #18222b;
+  --muted: #5d6b75;
+  --line: #d8dfe0;
+  --accent: #0b6870;
+  --accent-soft: #e2f0ef;
+  --ok: #2f7d4a;
+  --warn: #9a6200;
+  --warn-soft: #fbf0d9;
+  --err: #b3261e;
+  --err-soft: #fbe5e3;
+  --note: #fff6c4;
+  --note-ink: #4d4200;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111719; --surface: #1a2225; --ink: #e6ecec; --muted: #9aa9ad; --line: #2e3a3e;
+    --accent: #5cc2bf; --accent-soft: #173233; --ok: #6cc28a; --warn: #e2b04a; --warn-soft: #362a12;
+    --err: #ff8a80; --err-soft: #3a1a18; --note: #3a3510; --note-ink: #f3e7a0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111719; --surface: #1a2225; --ink: #e6ecec; --muted: #9aa9ad; --line: #2e3a3e;
+  --accent: #5cc2bf; --accent-soft: #173233; --ok: #6cc28a; --warn: #e2b04a; --warn-soft: #362a12;
+  --err: #ff8a80; --err-soft: #3a1a18; --note: #3a3510; --note-ink: #f3e7a0; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font-body); }
+h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.25; }
+h1 { font-size: 1.6rem; font-weight: 600; }
+h2 { font-size: 1.15rem; font-weight: 600; }
+h3 { font-size: 0.95rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-size: 0.86em; }
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+/* Top bar */
+.topbar { display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand { font-weight: 700; letter-spacing: 0.02em; font-size: 1.05rem; }
+.brand span { color: var(--accent); }
+.privacy { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--muted); }
+.spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 4px 10px; cursor: pointer; font-size: 0.85rem; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+
+/* Shell */
+.shell { display: grid; grid-template-columns: 220px minmax(0, 1fr) 300px; gap: 24px; max-width: 1280px; margin: 0 auto; padding: 24px 20px 64px; }
+@media (max-width: 1100px) { .shell { grid-template-columns: 200px minmax(0, 1fr); } .help { grid-column: 2; } }
+@media (max-width: 760px) { .shell { grid-template-columns: minmax(0, 1fr); padding: 16px; } .help { grid-column: 1; } }
+
+/* Steps */
+.steps { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 16px; align-self: start; }
+.steps button { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 8px; cursor: pointer; color: var(--muted); }
+.steps button .n { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 0.75rem; font-weight: 600; }
+.steps button.done .n { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.steps button.current { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.steps button.current .n { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.steps .sub { padding-left: 42px; font-size: 0.85rem; }
+@media (max-width: 760px) { .steps { position: static; flex-direction: row; flex-wrap: wrap; } .steps .sub { padding-left: 10px; } }
+
+/* Panels */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.lead { color: var(--muted); max-width: 62ch; }
+.q { display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line); }
+.q:first-of-type { border-top: 0; padding-top: 0; }
+.q-head { display: flex; gap: 10px; align-items: baseline; }
+.q-num { font-family: var(--font-mono); color: var(--accent); font-size: 0.8rem; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 180px; flex: 1; }
+.field label { font-size: 0.85rem; font-weight: 500; }
+.field .hint { font-size: 0.8rem; color: var(--muted); }
+input[type="text"], input[type="date"], select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 10px; width: 100%; }
+input.bad { border-color: var(--err); background: var(--err-soft); }
+
+.choices { display: grid; gap: 8px; }
+.choice { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; background: var(--surface); }
+.choice:hover { border-color: var(--accent); }
+.choice[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.choice .dot { flex: none; width: 16px; height: 16px; margin-top: 3px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.choice[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.choice .t { font-weight: 500; }
+.choice .d { font-size: 0.85rem; color: var(--muted); }
+.choice .code { margin-left: auto; flex: none; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 1px 9px; font-size: 0.78rem; font-weight: 500; background: var(--paper); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.chip.err { background: var(--err-soft); border-color: transparent; color: var(--err); }
+.chip.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+.chip.ok { color: var(--ok); }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn.link { border: 0; background: transparent; color: var(--accent); padding: 4px 0; }
+.btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+.actions { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; padding-top: 8px; }
+
+/* Cards on start screen */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); }
+.card.primary { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.card .foot { margin-top: auto; padding-top: 8px; }
+
+/* Event card */
+.event { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; }
+.event .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* People table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 680px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-size: 0.78rem; font-weight: 600; color: var(--muted); background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+tr.sel td { background: var(--accent-soft); }
+td input[type="text"] { width: 96px; text-align: right; padding: 5px 8px; font-variant-numeric: tabular-nums; }
+.person { display: flex; flex-direction: column; }
+.person button { border: 0; background: transparent; padding: 0; text-align: left; cursor: pointer; font-weight: 500; color: var(--ink); }
+
+.drawer { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* Summary tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.tile { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.tile .big { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.issue { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; }
+.issue.err { background: var(--err-soft); }
+.issue.warn { background: var(--warn-soft); }
+.issue .code { margin-left: auto; }
+
+.review { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 10px; }
+.review li { list-style: none; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.review li:last-child { border-bottom: 0; }
+ol.review { margin: 0; padding: 0; }
+
+ol.how { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+/* Help rail */
+.help { display: flex; flex-direction: column; gap: 12px; align-self: start; }
+.help .box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.disclaimer { border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; }
+details { border-top: 1px solid var(--line); padding-top: 8px; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.9rem; }
+details p { margin-top: 6px; font-size: 0.86rem; color: var(--muted); }
+
+/* Design notes */
+.note { background: var(--note); color: var(--note-ink); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; display: flex; gap: 8px; }
+.note b { flex: none; font-family: var(--font-mono); }
+body:not(.notes) .note { display: none; }
+
+@media (prefers-reduced-motion: no-preference) { .choice, .btn { transition: border-color 0.12s, background 0.12s; } }
+</style>
+</head>
+<body class="notes">
+<header class="topbar">
+  <div class="brand">Med<span>AK</span></div>
+  <div class="privacy" id="privacy"></div>
+  <div class="spacer"></div>
+  <label class="toggle"><input type="checkbox" id="notes-toggle" checked> <span id="notes-label">Design notes</span></label>
+  <div class="seg" role="group" aria-label="Sprog / Language">
+    <button type="button" data-lang="da" aria-pressed="true">Dansk</button>
+    <button type="button" data-lang="en" aria-pressed="false">English</button>
+  </div>
+</header>
+<div class="shell">
+  <nav class="steps" id="steps" aria-label="Steps"></nav>
+  <main id="main"></main>
+  <aside class="help" id="help"></aside>
+</div>
+
+<script>
+"use strict";
+
+// ---------- State (example data, clearly fictional) ----------
+const state = {
+  lang: "da",
+  screen: "start",
+  advisor: false,
+  what: "pay",
+  date: "2026-09-15",
+  rule: "cap-none",
+  listed: false,
+  currency: "DKK",
+  price: "25,00",
+  rate: "",
+  selected: 3,
+  tinKind: "tin",
+  people: [
+    { name: "Anna Jensen", id: "120588-••••", abroad: false, shares: 400, taxed: 18400 },
+    { name: "Mikkel Sørensen", id: "030791-••••", abroad: false, shares: 250, taxed: 11500 },
+    { name: "Sofie Nielsen", id: "250993-••••", abroad: false, shares: 250, taxed: 11500 },
+    { name: "Lars Pedersen", id: "", abroad: true, country: "SE", shares: 150, taxed: 6900 },
+    { name: "Priya Raman", id: "180290-••••", abroad: false, shares: 600, taxed: 27600 },
+  ],
+};
+
+const SCREENS = ["start", "company", "events", "event", "people", "check", "send"];
+
+// ---------- Helpers ----------
+const tr = (da, en) => (state.lang === "da" ? da : en);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const locale = () => (state.lang === "da" ? "da-DK" : "en-GB");
+const kr = (n) => new Intl.NumberFormat(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const int = (n) => new Intl.NumberFormat(locale()).format(n);
+function parseNum(s) {
+  const t = String(s).trim().replace(/\s/g, "");
+  const norm = state.lang === "da" ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
+  const n = Number(norm);
+  return Number.isFinite(n) ? n : NaN;
+}
+const price = () => parseNum(state.price) || 0;
+const paid = (p) => p.shares * price();
+const acq = (p) => paid(p) + p.taxed;
+const note = (n, text) => `<div class="note"><b>${n}</b><span>${text}</span></div>`;
+function fmtDate(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return isNaN(d) ? iso : d.toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
+}
+const afterSplit = () => state.date >= "2026-07-01";
+
+function ruleOptions() {
+  const big = afterSplit()
+    ? { id: "cap-none", code: "H", t: tr("LL § 7 P uden loft (ordningen fra 1. juli 2026)", "LL § 7 P with no cap (the scheme from 1 July 2026)"), d: tr("Kræver et grundbeløb i årslønnen.", "Requires a base amount in the annual salary.") }
+    : { id: "cap-none", code: "G", t: tr("LL § 7 P, op til 50 % af lønnen", "LL § 7 P, up to 50% of salary"), d: tr("Ordningen gjaldt til og med 30. juni 2026.", "The scheme applied until 30 June 2026.") };
+  const opts = [
+    { id: "cap10", code: "E", t: tr("LL § 7 P, op til 10 % af årslønnen", "LL § 7 P, up to 10% of annual salary"), d: tr("Den almindelige medarbejderaktieordning.", "The standard employee share scheme.") },
+    { id: "cap20", code: "F", t: tr("LL § 7 P, op til 20 % af årslønnen", "LL § 7 P, up to 20% of annual salary"), d: tr("Når ordningen tilbydes bredt til de ansatte.", "When the scheme is offered broadly to employees.") },
+    big,
+  ];
+  if (state.what === "options") {
+    opts.push({ id: "s28", code: "B", t: tr("LL § 28, købe- og tegningsretter", "LL § 28, purchase and subscription rights"), d: tr("Typisk optioner eller warrants i mindre selskaber.", "Typically options or warrants in smaller companies.") });
+  }
+  opts.push({ id: "s16", code: "M", t: tr("LL § 16, beskattet som almindelig løn", "LL § 16, taxed as ordinary salary"), d: tr("Fx RSU'er fra et udenlandsk moderselskab.", "E.g. RSUs from a foreign parent company.") });
+  return opts;
+}
+function currentCode() {
+  if (state.what === "matching") return "K";
+  return (ruleOptions().find((o) => o.id === state.rule) || {}).code || "";
+}
+function whatLabel() {
+  return {
+    pay: tr("Aktier som en del af lønnen", "Shares as part of pay"),
+    options: tr("Udnyttede optioner eller warrants", "Exercised options or warrants"),
+    matching: tr("Køb med matching shares", "Purchase with matching shares"),
+  }[state.what];
+}
+function personIssues(p) {
+  if (p.abroad && p.name === "Lars Pedersen" && !state.larsFixed) {
+    return [{ sev: "err", code: "238", text: tr("Udenlandsk TIN-nummer mangler", "Foreign tax ID (TIN) is missing") }];
+  }
+  if (p.taxed === 0) return [{ sev: "warn", code: "", text: tr("Intet beskattet beløb. Er det rigtigt?", "No taxed amount. Is that right?") }];
+  return [];
+}
+const allIssues = () => state.people.flatMap((p, i) => personIssues(p).map((x) => ({ ...x, i, name: p.name })));
+
+// ---------- Screens ----------
+const screens = {};
+
+screens.start = () => `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Hvad vil du indberette?", "What do you want to report?")}</h1>
+      <p class="lead">${tr("Vælg det, der er sket i selskabet. Du behøver ikke kende SKATs koder; dem finder MedAK ud fra dine svar.", "Choose what happened in the company. You don't need to know SKAT's codes; MedAK works them out from your answers.")}</p>
+    </div>
+    ${note(1, "Start from the situation, not SKAT's report type or codes. Only B is built first; the others are visible so users know they are coming.")}
+    <div class="cards">
+      <div class="card primary">
+        <h2>${tr("Medarbejderaktier, optioner og warrants", "Employee shares, options and warrants")}</h2>
+        <p class="small muted">${tr("Aktier som løn, udnyttede optioner og warrants, RSU'er og matching shares.", "Shares as pay, exercised options and warrants, RSUs and matching shares.")}</p>
+        <div class="foot"><button class="btn primary" data-go="company">${tr("Start", "Start")}</button></div>
+      </div>
+      <div class="card">
+        <h2>${tr("Likvidationsprovenu", "Liquidation proceeds")}</h2>
+        <p class="small muted">${tr("For de fleste er SKATs eget enkeltindberetningsskema i TastSelv Erhverv det nemmeste. Du skal kun bruge en fil, hvis aktierne er optaget til handel, eller hvis en anden end selskabet har udbetalt provenuet.", "For most companies, SKAT's own single-entry form in TastSelv Erhverv is easiest. You only need a file if the shares are listed, or if someone other than the company paid out the proceeds.")}</p>
+        <div class="foot row"><a href="https://info.skat.dk/data.aspx?oid=2462530" target="_blank" rel="noopener">${tr("Sådan bruger du SKATs skema", "How to use SKAT's form")}</a><span class="chip">${tr("Fil: kommer senere", "File: coming later")}</span></div>
+      </div>
+      <div class="card">
+        <h2>${tr("Selskabets køb af egne aktier", "Company buying back its own shares")}</h2>
+        <p class="small muted">${tr("Når selskabet køber aktier tilbage fra personer eller selskaber.", "When the company buys shares back from people or companies.")}</p>
+        <div class="foot"><span class="chip">${tr("Kommer senere", "Coming later")}</span></div>
+      </div>
+      <div class="card">
+        <h2>${tr("Investorfradrag", "Investor deduction")}</h2>
+        <p class="small muted">${tr("Kapitalindskud, der giver investorer fradrag.", "Capital contributions that give investors a deduction.")}</p>
+        <div class="foot"><span class="chip">${tr("Kommer senere", "Coming later")}</span></div>
+      </div>
+    </div>
+    ${note(2, "Liquidation points to SKAT's own single-entry form first, as decided. A file is only offered for the two cases the form cannot handle.")}
+    <div class="row">
+      <button class="btn">${tr("Åbn gemt projekt", "Open saved project")}</button>
+      <button class="btn">${tr("Indlæs fil fra SKATs Excel-ark", "Import a file from SKAT's Excel template")}</button>
+    </div>
+    ${note(3, "Returning users open last year's project file: company, shares and people are already there. Files made with SKAT's template can be imported too.")}
+  </div>`;
+
+screens.company = () => `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Selskab og indkomstår", "Company and income year")}</h1>
+      <p class="lead">${tr("Det her skriver du kun én gang. Resten af indberetningen genbruger det.", "You enter this once. The rest of the report reuses it.")}</p>
+    </div>
+    ${note(4, "The company CVR is on every line in SKAT's file, but entered once here. The year decides which events belong in this file (one file per year).")}
+    <div class="q">
+      <div class="row">
+        <div class="field"><label for="cvr">${tr("Selskabets cvr-nr.", "Company CVR number")}</label><input type="text" id="cvr" value="12345674" inputmode="numeric"></div>
+        <div class="field"><label for="cname">${tr("Selskabets navn", "Company name")}</label><input type="text" id="cname" value="Nordlys Software ApS"></div>
+      </div>
+      <div class="row">
+        <div class="field" style="max-width:220px"><label for="year">${tr("Indkomstår", "Income year")}</label>
+          <select id="year"><option>2026</option><option>2025</option><option>2024</option></select>
+        </div>
+        <div class="field"><span class="hint">${tr("Frist", "Deadline")}</span><span><b>${tr("20. januar 2027", "20 January 2027")}</b> <span class="chip warn">${tr("om 77 dage", "in 77 days")}</span></span></div>
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-head"><h2>${tr("Hvem sender filen til SKAT?", "Who sends the file to SKAT?")}</h2></div>
+      <div class="choices" role="radiogroup">
+        <div class="choice" role="radio" tabindex="0" data-set="advisor" data-val="false" aria-checked="${!state.advisor}"><span class="dot"></span><div><div class="t">${tr("Selskabet selv", "The company itself")}</div><div class="d">${tr("Logger på TastSelv Erhverv som selskabet.", "Logs on to TastSelv Erhverv as the company.")}</div></div></div>
+        <div class="choice" role="radio" tabindex="0" data-set="advisor" data-val="true" aria-checked="${state.advisor}"><span class="dot"></span><div><div class="t">${tr("En rådgiver på selskabets vegne", "An advisor on the company's behalf")}</div><div class="d">${tr("Fx revisor eller advokat med adgang via TastSelv Erhverv.", "E.g. an accountant or lawyer with access through TastSelv Erhverv.")}</div></div></div>
+      </div>
+      ${state.advisor ? `
+      <div class="row">
+        <div class="field"><label for="acvr">${tr("Rådgiverens cvr-nr.", "Advisor's CVR number")}</label><input type="text" id="acvr" placeholder="12345674"></div>
+        <div class="field"><label for="aname">${tr("Firmanavn", "Firm name")}</label><input type="text" id="aname" maxlength="27"><span class="hint">${tr("Højst 27 tegn (SKATs grænse)", "At most 27 characters (SKAT's limit)")}</span></div>
+      </div>
+      <div class="field"><label for="aaddr">${tr("Adresse", "Address")}</label><input type="text" id="aaddr" maxlength="35"><span class="hint">${tr("Højst 35 tegn", "At most 35 characters")}</span></div>` : ""}
+    </div>
+    <div class="actions"><button class="btn" data-go="start">${tr("Tilbage", "Back")}</button><button class="btn primary" data-go="events">${tr("Fortsæt", "Continue")}</button></div>
+  </div>`;
+
+screens.events = () => {
+  const errs = allIssues().filter((x) => x.sev === "err").length;
+  return `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Hændelser i 2026", "Events in 2026")}</h1>
+      <p class="lead">${tr("En hændelse er fx en tildeling af aktier eller en udnyttelse af optioner på en bestemt dato. Alle, der var med, tilføjes til hændelsen.", "An event is, for example, a grant of shares or an exercise of options on a given date. Everyone involved is added to the event.")}</p>
+    </div>
+    ${note(5, "Organised around events. Date, scheme, share and price are set once per event, instead of on every row as in the Excel template.")}
+    <div class="event">
+      <div class="stack" style="gap:6px">
+        <h2>${whatLabel()} · ${fmtDate(state.date)}</h2>
+        <div class="meta">
+          <span class="chip accent">${tr("SKAT-kode", "SKAT code")} <span class="mono">${currentCode()}</span></span>
+          <span class="chip">Nordlys Software ApS B-anparter</span>
+          <span class="chip">${state.people.length} ${tr("personer", "people")}</span>
+          ${errs ? `<span class="chip err">${errs} ${tr("skal rettes", "to fix")}</span>` : `<span class="chip ok">${tr("Klar", "Ready")}</span>`}
+        </div>
+      </div>
+      <div class="row"><button class="btn" data-go="event">${tr("Rediger", "Edit")}</button><button class="btn" data-go="people">${tr("Personer", "People")}</button></div>
+    </div>
+    <button class="btn" style="align-self:flex-start">+ ${tr("Tilføj hændelse", "Add event")}</button>
+    <div class="actions"><button class="btn" data-go="company">${tr("Tilbage", "Back")}</button><button class="btn primary" data-go="check">${tr("Tjek indberetningen", "Check the report")}</button></div>
+  </div>`;
+};
+
+screens.event = () => {
+  const opts = ruleOptions();
+  if (!opts.some((o) => o.id === state.rule)) state.rule = "cap-none";
+  return `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Beskriv hændelsen", "Describe the event")}</h1>
+      <p class="lead">${tr("Svar på spørgsmålene. Koden til SKAT vises, så du kan sammenligne med SKATs vejledning, men du skal ikke vælge den selv.", "Answer the questions. The code for SKAT is shown so you can compare it with SKAT's guidance, but you don't have to choose it yourself.")}</p>
+    </div>
+    <div class="q">
+      <div class="q-head"><span class="q-num">1</span><h2>${tr("Hvad skete der?", "What happened?")}</h2></div>
+      <div class="choices" role="radiogroup">
+        ${[
+          ["pay", tr("Medarbejdere fik aktier som en del af lønnen", "Employees received shares as part of their pay"), tr("Fx tildelte aktier, RSU'er eller aktier købt til favørkurs.", "E.g. granted shares, RSUs or shares bought at a discount.")],
+          ["options", tr("Medarbejdere udnyttede optioner eller warrants", "Employees exercised options or warrants"), tr("De fik aktier ved at bruge en købe- eller tegningsret.", "They got shares by using a purchase or subscription right.")],
+          ["matching", tr("Medarbejdere købte aktier og fik matching shares", "Employees bought shares and received matching shares"), tr("Både købet og de matchede aktier indberettes.", "Both the purchase and the matched shares are reported.")],
+        ].map(([v, t, d]) => `<div class="choice" role="radio" tabindex="0" data-set="what" data-val="${v}" aria-checked="${state.what === v}"><span class="dot"></span><div><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join("")}
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-head"><span class="q-num">2</span><h2>${tr("Hvornår fik medarbejderne endelig ret til aktierne?", "When did the employees get the final right to the shares?")}</h2></div>
+      <div class="row">
+        <div class="field" style="max-width:240px"><label for="date">${tr("Dato", "Date")}</label><input type="date" id="date" value="${state.date}" data-bind="date"></div>
+        <p class="small muted" style="flex:2;min-width:220px">${tr("Retserhvervelsesdatoen, fx når aktierne vestede. Den afgør indkomståret og hvilke regler der gælder.", "The date the right was acquired, e.g. when the shares vested. It decides the income year and which rules apply.")}</p>
+      </div>
+      ${note(6, "The date is asked before the scheme, because it decides the options: before 1 July 2026 the 50% scheme (code G) is shown, from that date the new scheme (code H). Try changing the date.")}
+    </div>
+    ${state.what === "matching" ? "" : `
+    <div class="q">
+      <div class="q-head"><span class="q-num">3</span><h2>${tr("Hvilke regler er ordningen omfattet af?", "Which rules does the scheme fall under?")}</h2></div>
+      <div class="choices" role="radiogroup">
+        ${opts.map((o) => `<div class="choice" role="radio" tabindex="0" data-set="rule" data-val="${o.id}" aria-checked="${state.rule === o.id}"><span class="dot"></span><div><div class="t">${o.t}</div><div class="d">${o.d}</div></div><span class="chip code mono">${o.code}</span></div>`).join("")}
+      </div>
+      <button class="btn link" style="align-self:flex-start" data-help="unsure">${tr("Jeg er ikke sikker", "I'm not sure")}</button>
+    </div>`}
+    <div class="q">
+      <div class="q-head"><span class="q-num">${state.what === "matching" ? 3 : 4}</span><h2>${tr("Hvilken aktie?", "Which share?")}</h2></div>
+      <div class="row">
+        <div class="field"><label for="sec">${tr("Aktie", "Share")}</label><select id="sec"><option>Nordlys Software ApS B-anparter</option><option>+ ${tr("Ny aktieklasse", "New share class")}</option></select></div>
+      </div>
+      <div class="row small"><span class="chip">${tr("Ikke optaget til handel", "Not listed")}</span><span class="chip">${tr("Udstedt i Danmark", "Issued in Denmark")}</span><span class="muted">${tr("Gemmes og genbruges i senere hændelser.", "Saved and reused in later events.")}</span></div>
+    </div>
+    <div class="q">
+      <div class="q-head"><span class="q-num">${state.what === "matching" ? 4 : 5}</span><h2>${tr("Hvad betalte medarbejderne pr. aktie?", "What did the employees pay per share?")}</h2></div>
+      <div class="row">
+        <div class="field" style="max-width:200px"><label for="price">${tr("Pris pr. aktie", "Price per share")}</label><input type="text" id="price" value="${esc(state.price)}" data-bind="price" inputmode="decimal"><span class="hint">${tr("0, hvis de fik aktierne gratis", "0 if they got the shares for free")}</span></div>
+        <div class="field" style="max-width:160px"><label for="ccy">${tr("Valuta", "Currency")}</label><select id="ccy" data-bind="currency">${["DKK", "EUR", "USD", "SEK", "GBP"].map((c) => `<option ${state.currency === c ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+        ${state.currency !== "DKK" ? `<div class="field" style="max-width:260px"><label for="rate">${tr("Kurs, DKK pr. 100", "Rate, DKK per 100")} ${state.currency}</label><input type="text" id="rate" value="${esc(state.rate)}" data-bind="rate"><button class="btn link" data-fill-rate>${tr("Foreslå kurs fra Nationalbanken", "Suggest rate from Danmarks Nationalbank")}</button></div>` : ""}
+      </div>
+      ${note(7, "Normal numbers in the user's language (25,00 or 25.00). The engine converts to SKAT's øre and 6-decimal format and rejects ambiguous input. Foreign currency reveals an exchange-rate field with a suggested rate; only the currency and date are sent to fetch it.")}
+    </div>
+    <div class="actions"><button class="btn" data-go="events">${tr("Tilbage", "Back")}</button><button class="btn primary" data-go="people">${tr("Videre til personer", "Continue to people")}</button></div>
+  </div>`;
+};
+
+screens.people = () => {
+  const p = state.people[state.selected];
+  const rows = state.people.map((x, i) => {
+    const iss = personIssues(x);
+    return `<tr class="${i === state.selected ? "sel" : ""}">
+      <td><div class="person"><button data-select="${i}">${esc(x.name)}</button><span class="small muted mono">${x.abroad ? tr("Bor i Sverige", "Lives in Sweden") : esc(x.id)}</span></div></td>
+      <td class="num"><input type="text" value="${x.shares}" data-shares="${i}" aria-label="${tr("Antal aktier", "Number of shares")}"></td>
+      <td class="num" id="paid-${i}">${kr(paid(x))}</td>
+      <td class="num"><input type="text" value="${kr(x.taxed)}" data-taxed="${i}" aria-label="${tr("Beskattet via lønnen", "Taxed through payroll")}"></td>
+      <td class="num" id="acq-${i}"><b>${kr(acq(x))}</b></td>
+      <td>${iss.length ? iss.map((s) => `<span class="chip ${s.sev}">${s.sev === "err" ? tr("Ret", "Fix") : tr("Tjek", "Check")}</span>`).join("") : `<span class="chip ok">OK</span>`}</td>
+    </tr>`;
+  }).join("");
+  return `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Personer i hændelsen", "People in the event")}</h1>
+      <p class="lead">${tr("For hver person: antal aktier og det beløb, der er beskattet via lønnen (eIndkomst). Betalt beløb og anskaffelsessum regnes ud.", "For each person: number of shares and the amount taxed through payroll (eIndkomst). Amount paid and acquisition sum are calculated.")}</p>
+    </div>
+    <div class="row">
+      <button class="btn">+ ${tr("Tilføj person", "Add person")}</button>
+      <button class="btn">${tr("Indsæt fra regneark", "Paste from spreadsheet")}</button>
+      <button class="btn">${tr("Importér CSV", "Import CSV")}</button>
+      <span class="spacer"></span>
+      <span class="small muted">${tr("Viser 5 af 5", "Showing 5 of 5")}</span>
+    </div>
+    ${note(8, "Four inputs per person instead of 62 columns. Acquisition sum = amount paid + amount taxed (SKAT's rule for B), and it fills all five amount fields in the file. Edit a number to see it recalculate.")}
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>${tr("Person", "Person")}</th>
+          <th class="num">${tr("Aktier", "Shares")}</th>
+          <th class="num">${tr("Betalt", "Paid")} (${state.currency})</th>
+          <th class="num">${tr("Beskattet via løn", "Taxed via payroll")}</th>
+          <th class="num">${tr("Anskaffelsessum", "Acquisition sum")}</th>
+          <th>${tr("Status", "Status")}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${p ? `
+    <div class="drawer">
+      <div class="row"><h2>${esc(p.name)}</h2><span class="spacer"></span><span class="small muted">${tr("Gemmes i personregistret og genbruges", "Saved in the people register and reused")}</span></div>
+      <div class="choices" role="radiogroup" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="choice" role="radio" tabindex="0" data-person-abroad="false" aria-checked="${!p.abroad}"><span class="dot"></span><div class="t">${tr("Bor i Danmark", "Lives in Denmark")}</div></div>
+        <div class="choice" role="radio" tabindex="0" data-person-abroad="true" aria-checked="${p.abroad}"><span class="dot"></span><div class="t">${tr("Bor i udlandet", "Lives abroad")}</div></div>
+      </div>
+      ${p.abroad ? `
+        <div class="row">
+          <div class="field"><label for="pc">${tr("Bopælsland", "Country of residence")}</label><select id="pc"><option>${tr("Sverige", "Sweden")} (SE)</option></select></div>
+          <div class="field"><label for="pcpr">${tr("Dansk cpr-nr., hvis personen har et", "Danish CPR number, if the person has one")}</label><input type="text" id="pcpr" placeholder="${tr("Valgfrit", "Optional")}"></div>
+        </div>
+        <div class="field"><span class="hint">${tr("Hvordan kan personen identificeres?", "How can the person be identified?")}</span>
+          <div class="seg" role="group">
+            <button type="button" data-tin="tin" aria-pressed="${state.tinKind === "tin"}">${tr("Udenlandsk TIN", "Foreign TIN")}</button>
+            <button type="button" data-tin="birth" aria-pressed="${state.tinKind === "birth"}">${tr("Fødselsdato og -sted", "Date and place of birth")}</button>
+          </div>
+        </div>
+        ${state.tinKind === "tin" ? `
+        <div class="field" style="max-width:320px"><label for="tin">${tr("Svensk personnummer (TIN)", "Swedish personal identity number (TIN)")}</label><input type="text" id="tin" class="${state.larsFixed ? "" : "bad"}" placeholder="YYYYMMDD-XXXX" data-tin-input><span class="hint" style="color:var(--err)">${state.larsFixed ? "" : tr("Udfyld TIN, eller vælg fødselsdato og -sted.", "Fill in the TIN, or choose date and place of birth.") + ' <span class="mono">(SKAT 238)</span>'}</span></div>` : `
+        <div class="row"><div class="field"><label for="bd">${tr("Fødselsdato", "Date of birth")}</label><input type="date" id="bd"></div><div class="field"><label for="bp">${tr("Fødested", "Place of birth")}</label><input type="text" id="bp"></div><div class="field"><label for="bc">${tr("Fødeland", "Country of birth")}</label><select id="bc"><option>SE</option></select></div></div>`}
+        <div class="row">
+          <div class="field"><label for="st">${tr("Vej og nummer", "Street and number")}</label><input type="text" id="st" value="Storgatan 12"></div>
+          <div class="field" style="max-width:140px"><label for="pn">${tr("Postnr.", "Postcode")}</label><input type="text" id="pn" value="211 42"></div>
+          <div class="field"><label for="town">${tr("By", "Town")}</label><input type="text" id="town" value="Malmö"></div>
+        </div>
+        ${note(9, "The foreign-owner fields only appear for people living abroad, and adapt to what the person has (a TIN, or date and place of birth). The field label names the country's own ID. The SKAT error code is shown small, for matching against SKAT's validation report.")}
+      ` : `
+        <div class="row"><div class="field" style="max-width:260px"><label for="cpr">${tr("Cpr-nr.", "CPR number")}</label><input type="text" id="cpr" value="${esc(p.id)}"><span class="hint">${tr("Foranstillede nuller bevares", "Leading zeros are kept")}</span></div></div>`}
+    </div>` : ""}
+    <div class="actions"><button class="btn" data-go="event">${tr("Tilbage", "Back")}</button><button class="btn primary" data-go="check">${tr("Tjek indberetningen", "Check the report")}</button></div>
+  </div>`;
+};
+
+screens.check = () => {
+  const issues = allIssues();
+  const errs = issues.filter((x) => x.sev === "err");
+  const total = state.people.reduce((s, p) => s + acq(p), 0);
+  return `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Tjek indberetningen", "Check the report")}</h1>
+      <p class="lead">${tr("Gennemse det hele i almindeligt sprog, før filen dannes.", "Review everything in plain language before the file is made.")}</p>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="small muted">${tr("Indberetninger", "Records")}</div><div class="big">${state.people.length}</div></div>
+      <div class="tile"><div class="small muted">${tr("Samlet anskaffelsessum", "Total acquisition sum")}</div><div class="big">${kr(total)}</div></div>
+      <div class="tile"><div class="small muted">${tr("Skal rettes", "To fix")}</div><div class="big" style="color:${errs.length ? "var(--err)" : "var(--ok)"}">${errs.length}</div></div>
+    </div>
+    ${note(10, "SKAT's receipt shows the number of records and a total amount. Showing the same two figures here lets the company reconcile after upload, which the guidance requires.")}
+    ${issues.length ? `<div class="stack" style="gap:8px">${issues.map((x) => `
+      <div class="issue ${x.sev}"><div><b>${esc(x.name)}:</b> ${x.text}</div><span class="code mono small">${x.code ? "SKAT " + x.code : ""}</span><button class="btn link" data-go="people" data-select="${x.i}">${tr("Ret", "Fix")}</button></div>`).join("")}</div>` : `<div class="issue" style="background:var(--accent-soft)">${tr("Ingen fejl. Indberetningen er klar.", "No errors. The report is ready.")}</div>`}
+    <h2>${tr("Gennemgang", "Review")}</h2>
+    <ol class="review">
+      ${state.people.map((p) => `<li>${tr(
+        `<b>${esc(p.name)}</b> fik ${int(p.shares)} B-anparter i Nordlys Software ApS den ${fmtDate(state.date)} (${whatLabel().toLowerCase()}, kode ${currentCode()}). Anskaffelsessum ${kr(acq(p))} kr.`,
+        `<b>${esc(p.name)}</b> received ${int(p.shares)} B shares in Nordlys Software ApS on ${fmtDate(state.date)} (${whatLabel().toLowerCase()}, code ${currentCode()}). Acquisition sum DKK ${kr(acq(p))}.`
+      )}</li>`).join("")}
+    </ol>
+    <div class="row"><button class="btn">${tr("Udskriv / gem som PDF", "Print / save as PDF")}</button><span class="small muted">${tr("Til godkendelse internt og som dokumentation (skal gemmes i 5 år).", "For internal sign-off and as documentation (must be kept for 5 years).")}</span></div>
+    ${note(11, "A page a person can read and sign off, unlike the .txt file. It doubles as part of the 5-year record the guidance requires.")}
+    <div class="actions"><button class="btn" data-go="events">${tr("Tilbage", "Back")}</button><button class="btn primary" data-go="send" ${errs.length ? "disabled" : ""}>${tr("Dan filen", "Make the file")}</button></div>
+  </div>`;
+};
+
+screens.send = () => `
+  <div class="panel">
+    <div class="stack">
+      <h1>${tr("Send til SKAT", "Send to SKAT")}</h1>
+      <p class="lead">${tr("Filen er klar. Du uploader den selv i TastSelv Erhverv. MedAK sender ingenting.", "The file is ready. You upload it yourself in TastSelv Erhverv. MedAK sends nothing.")}</p>
+    </div>
+    <div class="row"><button class="btn primary">${tr("Hent fil", "Download file")}</button><span class="mono small">MedAK_2278_B_2026_12345674.txt</span></div>
+    <div class="row"><button class="btn">${tr("Gem projekt", "Save project")}</button><span class="small muted">${tr("Gem projektfilen, så du kan rette eller genbruge data næste år.", "Save the project file so you can correct or reuse the data next year.")}</span></div>
+    <h2>${tr("Sådan uploader du", "How to upload")}</h2>
+    <ol class="how">
+      <li>${tr("Log på TastSelv Erhverv som selskabet (eller som rådgiver).", "Log on to TastSelv Erhverv as the company (or as the advisor).")}</li>
+      <li>${tr("Vælg <b>Øvrige indberetninger</b> → <b>Værdipapirer</b> → <b>Indberetning om medarbejderaktier, tilbagekøb …</b> → <b>Indberet via fil</b>.", "Choose <b>Øvrige indberetninger</b> → <b>Værdipapirer</b> → <b>Indberetning om medarbejderaktier, tilbagekøb …</b> → <b>Indberet via fil</b>.")}</li>
+      <li>${tr("Vælg indkomstår <b>2026</b> og indberetningstypen for medarbejderaktier, og vælg filen.", "Choose income year <b>2026</b> and the report type for employee shares, then choose the file.")}</li>
+      <li>${tr("Klik <b>Næste</b>. Er filen godkendt, klik <b>Godkend</b>. Det skal ske inden 5 dage, ellers bliver filen forældet.", "Click <b>Næste</b>. If the file is accepted, click <b>Godkend</b>. You must do this within 5 days, or the file expires.")}</li>
+      <li>${tr("Sammenlign kvitteringen med MedAK: <b>5 indberetninger</b> og samme samlede beløb.", "Compare SKAT's receipt with MedAK: <b>5 records</b> and the same total amount.")}</li>
+    </ol>
+    ${note(12, "Instructions match this exact report (year, report type). The 5-day approval rule comes from SKAT's guide and is easy to miss. If SKAT rejects lines, the user pastes the error lines back into MedAK and they are mapped to the right person.")}
+    <div class="row"><span class="small muted">${tr("Fik du fejl fra SKAT?", "Did SKAT report errors?")}</span><button class="btn">${tr("Indsæt SKATs fejlliste", "Paste SKAT's error list")}</button></div>
+    <div class="actions"><button class="btn" data-go="check">${tr("Tilbage", "Back")}</button><button class="btn" data-go="start">${tr("Færdig", "Done")}</button></div>
+  </div>`;
+
+// ---------- Help rail ----------
+function disclaimer() {
+  return `<div class="disclaimer"><b>${tr("Ikke skatterådgivning.", "Not tax advice.")}</b> ${tr("Dette er generel information. Er du i tvivl om din situation, så søg professionel rådgivning.", "This is general information. If you are in any doubt about your situation, seek professional advice.")}</div>`;
+}
+function help() {
+  const s = state.screen;
+  const boxes = [];
+  if (s === "event" || s === "start" || s === "people") {
+    boxes.push(`<div class="box" id="report-help">
+      <h3>${tr("Skal det overhovedet indberettes?", "Does this need to be reported at all?")}</h3>
+      ${disclaimer()}
+      <details ${state.openHelp === "cash" ? "open" : ""}><summary>${tr("Medarbejderen fik forskellen udbetalt kontant", "The employee was paid the difference in cash")}</summary><p>${tr("Ved differenceafregning har medarbejderen ikke fået aktier. Der indberettes kun til eIndkomst, ikke her. Overføres aktierne og sælges de samme dag, skal de indberettes her.", "With cash settlement of the difference, the employee did not get shares. It is reported only to eIndkomst, not here. If the shares are transferred and sold the same day, they must be reported here.")}</p></details>
+      <details><summary>${tr("Matching shares", "Matching shares")}</summary><p>${tr("Både købet af aktierne og de matchede aktier indberettes: købet på købsdatoen, de matchede aktier når de vester.", "Both the purchase and the matched shares are reported: the purchase on the purchase date, the matched shares when they vest.")}</p></details>
+      <details ${state.openHelp === "unsure" ? "open" : ""}><summary>${tr("Aktierne kommer fra et udenlandsk moderselskab", "The shares come from a foreign parent company")}</summary><p>${tr("Ydes aktierne af et udenlandsk koncernselskab, er det normalt det danske selskab, hvor medarbejderen er ansat, der indberetter.", "If the shares are granted by a foreign group company, it is normally the Danish company employing the person that reports.")}</p></details>
+      <a class="small" href="https://info.skat.dk/data.aspx?oid=2289412" target="_blank" rel="noopener">${tr("SKATs vejledning", "SKAT's guidance")}</a>
+    </div>`);
+  }
+  const tips = {
+    start: tr("MedAK laver den samme fil som SKATs Excel-ark, men du beskriver hændelser i stedet for at udfylde 62 kolonner.", "MedAK makes the same file as SKAT's Excel template, but you describe events instead of filling in 62 columns."),
+    company: tr("Fristen er 20. januar året efter. Falder den i en weekend, er fristen den følgende mandag.", "The deadline is 20 January the following year. If it falls on a weekend, it moves to the following Monday."),
+    events: tr("Hver hændelse kan have mange personer, og en person kan være med i flere hændelser.", "Each event can have many people, and one person can be in several events."),
+    event: tr("Usikker på ordningen? Spørg den, der har sat aktieordningen op, eller din rådgiver.", "Unsure about the scheme? Ask whoever set up the share scheme, or your advisor."),
+    people: tr("Beløbet beskattet via lønnen er det, der er indberettet til eIndkomst for aktierne.", "The amount taxed through payroll is what was reported to eIndkomst for the shares."),
+    check: tr("Fejl skal rettes før filen kan dannes. Advarsler kan du vælge at se bort fra.", "Errors must be fixed before the file can be made. You may choose to ignore warnings."),
+    send: tr("Afviste linjer skal genindberettes senest 14 dage efter SKATs svar.", "Rejected lines must be re-submitted within 14 days of SKAT's response."),
+  };
+  boxes.unshift(`<div class="box"><h3>${tr("Godt at vide", "Good to know")}</h3><p class="small">${tips[s]}</p></div>`);
+  if (s === "event") boxes.push(note(13, "Every 'do I need to report?' explanation carries the not-tax-advice notice, as decided, and links to SKAT's guidance. 'I'm not sure' opens it."));
+  return boxes.join("");
+}
+
+// ---------- Steps ----------
+function steps() {
+  const order = { start: 0, company: 1, events: 2, event: 2, people: 2, check: 3, send: 4 };
+  const cur = order[state.screen];
+  const items = [
+    ["start", 0, tr("Vælg indberetning", "Choose report")],
+    ["company", 1, tr("Selskab og år", "Company and year")],
+    ["events", 2, tr("Hændelser", "Events")],
+    ["check", 3, tr("Tjek", "Check")],
+    ["send", 4, tr("Send til SKAT", "Send to SKAT")],
+  ];
+  let html = "";
+  for (const [scr, idx, label] of items) {
+    const cls = idx < cur ? "done" : idx === cur && (scr !== "events" || state.screen === "events") ? "current" : "";
+    html += `<button class="${cls}" data-go="${scr}" ${idx === cur ? 'aria-current="step"' : ""}><span class="n">${idx + 1}</span><span>${label}</span></button>`;
+    if (scr === "events" && cur === 2) {
+      html += `<button class="sub ${state.screen === "event" ? "current" : ""}" data-go="event">${whatLabel()}</button>`;
+      html += `<button class="sub ${state.screen === "people" ? "current" : ""}" data-go="people">${tr("Personer", "People")} (${state.people.length})</button>`;
+    }
+  }
+  return html;
+}
+
+// ---------- Render ----------
+function render() {
+  document.documentElement.lang = state.lang;
+  document.getElementById("main").innerHTML = screens[state.screen]();
+  document.getElementById("help").innerHTML = help();
+  document.getElementById("steps").innerHTML = steps();
+  document.getElementById("privacy").innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${tr("Dine data bliver på denne computer", "Your data stays on this computer")}`;
+  document.getElementById("notes-label").textContent = tr("Designnoter", "Design notes");
+  document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
+}
+
+function go(screen) {
+  if (!SCREENS.includes(screen)) screen = "start";
+  state.screen = screen;
+  if (location.hash.slice(1) !== screen) history.replaceState(null, "", "#" + screen);
+  render();
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button, [role='radio'], [data-help]");
+  if (!t) return;
+  if (t.dataset.lang) { state.lang = t.dataset.lang; render(); return; }
+  if (t.dataset.select !== undefined) state.selected = Number(t.dataset.select);
+  if (t.dataset.help) { state.openHelp = t.dataset.help; render(); document.getElementById("report-help")?.scrollIntoView({ block: "nearest" }); return; }
+  if (t.dataset.set) {
+    const v = t.dataset.val;
+    state[t.dataset.set] = v === "true" ? true : v === "false" ? false : v;
+    render(); return;
+  }
+  if (t.dataset.personAbroad !== undefined) { state.people[state.selected].abroad = t.dataset.personAbroad === "true"; render(); return; }
+  if (t.dataset.tin) { state.tinKind = t.dataset.tin; render(); return; }
+  if (t.hasAttribute("data-fill-rate")) { state.rate = state.currency === "EUR" ? "746,02" : state.currency === "USD" ? "685,25" : state.currency === "SEK" ? "67,41" : "861,30"; render(); return; }
+  if (t.dataset.go) { go(t.dataset.go); return; }
+  if (t.dataset.select !== undefined) render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.getAttribute("role") === "radio") { e.preventDefault(); e.target.click(); }
+});
+
+document.addEventListener("change", (e) => {
+  const b = e.target.dataset.bind;
+  if (b) { state[b] = e.target.value; render(); }
+});
+
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.shares !== undefined || el.dataset.taxed !== undefined) {
+    const i = Number(el.dataset.shares ?? el.dataset.taxed);
+    const n = parseNum(el.value);
+    if (Number.isNaN(n)) { el.classList.add("bad"); return; }
+    el.classList.remove("bad");
+    if (el.dataset.shares !== undefined) state.people[i].shares = n; else state.people[i].taxed = n;
+    document.getElementById("paid-" + i).textContent = kr(paid(state.people[i]));
+    document.getElementById("acq-" + i).innerHTML = "<b>" + kr(acq(state.people[i])) + "</b>";
+  }
+  if (el.hasAttribute("data-tin-input")) {
+    const fixed = el.value.trim().length >= 8;
+    if (fixed !== !!state.larsFixed) { state.larsFixed = fixed; el.classList.toggle("bad", !fixed); }
+  }
+});
+
+document.getElementById("notes-toggle").addEventListener("change", (e) => document.body.classList.toggle("notes", e.target.checked));
+window.addEventListener("hashchange", () => go(location.hash.slice(1)));
+go(location.hash.slice(1) || "start");
+</script>
+</body>
+</html>

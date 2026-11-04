@@ -50,10 +50,25 @@ reader, validator) and a static Vite + React web app with no backend.
    (e.g. RSUs from a foreign listed parent, with foreign currency and FX rates) and
    non-Danish-speaking finance staff, not only Danish start-ups.
 
+## Flows and guidance (2026-11-04)
+
+1. **B first.** The employee-share flow (medarbejderaktier, options, warrants, RSUs) is
+   designed and polished first. A, C and D follow.
+2. **"Do I need to report?" guidance is never tax advice.** Wherever the app explains
+   whether or what to report (e.g. cash settlement of the difference, matching shares, a
+   foreign parent granting shares), it states clearly, in both languages, that this is
+   general information and not tax advice, and that the user should seek professional
+   advice if in any doubt. Each explanation links to SKAT's guidance.
+3. **Liquidation (D) points to SKAT's own single-entry form first.** SKAT's
+   *Enkeltindberetning* in TastSelv Erhverv (Øvrige indberetninger → Værdipapirer → AKSA →
+   Enkeltindberetning) is simpler for most liquidations. The D flow starts by sending users
+   there. MedAK's file is offered for the cases the form does not cover (guidance section
+   3.3):
+   - the shares are admitted to trading on a regulated market or MTF, or
+   - someone other than the liquidated company paid out the proceeds on its behalf.
+
 ## Not yet decided
 
 - Licence (Apache-2.0 proposed).
-- Which guided flow to polish first.
-- How much "do I need to report at all?" guidance to include.
 - Character encoding SKAT expects for æ/ø/å (the template writes the Windows ANSI code
   page). Needs confirming with eKapital or a real upload.
