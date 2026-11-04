@@ -1,0 +1,11 @@
+{
+  "name": "medak",
+  "private": true,
+  "description": "Free, open-source replacement for SKAT's AKSA 2278 Excel template",
+  "license": "Apache-2.0",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

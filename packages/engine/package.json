@@ -1,0 +1,19 @@
+{
+  "name": "@medak/engine",
+  "version": "0.1.0",
+  "description": "Read, write and validate SKAT dataindivid 2278 files (medarbejderaktier, egne aktier, investorfradrag, likvidationsprovenu)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "~7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

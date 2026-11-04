@@ -1,0 +1,7 @@
+# Raw research material copied from skat.dk (SKAT's templates, extracted VBA,
+# fetched guidance text). Kept locally for reference; not ours to redistribute.
+research/raw/
+
+.DS_Store
+node_modules/
+dist/
