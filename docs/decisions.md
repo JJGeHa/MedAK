@@ -67,8 +67,8 @@ reader, validator) and a static Vite + React web app with no backend.
    - the shares are admitted to trading on a regulated market or MTF, or
    - someone other than the liquidated company paid out the proceeds on its behalf.
 
-## Not yet decided
+## Licence (2026-11-04)
 
-- Licence (Apache-2.0 proposed).
+Apache-2.0.
 - Character encoding SKAT expects for æ/ø/å (the template writes the Windows ANSI code
   page). Needs confirming with eKapital or a real upload.

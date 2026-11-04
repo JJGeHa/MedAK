@@ -10,6 +10,7 @@ Describe what happened (a grant, a buyback, an investment, a payout); MedAK writ
 ![Status: early development](https://img.shields.io/badge/status-early%20development-orange)
 ![Languages: Dansk | English](https://img.shields.io/badge/sprog%20%2F%20language-Dansk%20%7C%20English-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-no%20runtime%20deps-3178c6)
+![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-informational)
 
 [Why](#why) · [How it works](#how-it-works) · [Report types](#report-types) · [Status](#status) · [Development](#development) · [Docs](#documentation) · [På dansk](#på-dansk)
 
@@ -148,6 +149,10 @@ Sources: SKAT's guidance for
 
 Issues and pull requests are welcome. Especially valuable: files produced by SKAT's Excel
 template (with personal data removed) to test against, and experience from real uploads.
+
+## Licence
+
+[Apache-2.0](LICENSE).
 
 ## På dansk
 
