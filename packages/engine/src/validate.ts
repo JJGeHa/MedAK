@@ -29,7 +29,11 @@ export type RuleId =
   | "amount.dkkConversionMismatch" | "amount.netMismatch" | "amount.proceedsMissing"
   | "quantity.zero"
   | "code.notValidOnDate" | "code.securityTypeMismatch"
-  | "investorOwnership.required" | "investorOwnership.notForFund";
+  | "investorOwnership.required" | "investorOwnership.notForFund"
+  | "sender.seInvalid" | "sender.nameTooLong" | "sender.addressTooLong"
+  | "model.unknownPerson" | "model.unknownSecurity" | "model.rateRequired"
+  | "model.schemeNotAvailable" | "model.invalidNumber" | "model.priceRequired"
+  | "model.costsExceedValue" | "model.wrongEventKind" | "model.noParticipants";
 
 export interface Issue {
   readonly rule: RuleId;

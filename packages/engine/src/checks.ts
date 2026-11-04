@@ -28,6 +28,25 @@ export function isPlausibleCpr(value: string): boolean {
   return isValidDayMonth(day, month) || isValidDayMonth(day - 60, month);
 }
 
+/**
+ * The birth date in a CPR number as `DDMMÅÅÅÅ`, or null if it has none. The century comes
+ * from the 7th digit, by the CPR register's table. Substitute numbers have 60 added to the day.
+ */
+export function birthDateFromCpr(value: string): string | null {
+  if (!isPlausibleCpr(value)) return null;
+  let day = Number(value.slice(0, 2));
+  const month = value.slice(2, 4);
+  if (!isValidDayMonth(day, Number(month))) day -= 60;
+  const yy = Number(value.slice(4, 6));
+  const seventh = Number(value[6]);
+  let century: number;
+  if (seventh <= 3) century = 1900;
+  else if (seventh === 4 || seventh === 9) century = yy <= 36 ? 2000 : 1900;
+  else century = yy <= 57 ? 2000 : 1800;
+  const date = String(day).padStart(2, "0") + month + String(century + yy);
+  return isValidDateDmy(date) ? date : null;
+}
+
 /** Old-style CPR modulus-11 check. Failing it is only a hint of a typo. */
 export function passesCprModulus11(value: string): boolean {
   if (!/^\d{10}$/.test(value)) return false;

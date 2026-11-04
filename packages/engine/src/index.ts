@@ -9,3 +9,4 @@ export * from "./checks.ts";
 export * from "./validate.ts";
 export * from "./messages.ts";
 export * from "./data/lists.ts";
+export * from "./project/index.ts";

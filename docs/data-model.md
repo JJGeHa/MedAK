@@ -78,11 +78,38 @@ grants, or comes back next year, is entered once.
 For a typical B grant to 40 employees in DKK, that is one event form plus 40 × (identity
 + 3 numbers), instead of 40 rows × 62 columns.
 
-## Consequences for the engine
+## In the engine
 
-- The record engine stays row-based (one row = one 2278 record), so it can read and write
-  files exactly.
-- A layer above it holds the project model (company, securities, persons, events,
-  participations) and expands it to rows.
-- Importing an existing `.txt` goes the other way: rows are grouped back into events and
-  persons where values match. Rows that don't group cleanly stay as individual events.
+The record engine stays row-based (one row = one 2278 record), so it can read and write files
+exactly. The project model in [`packages/engine/src/project`](../packages/engine/src/project)
+sits on top of it:
+
+| Function | What it does |
+|---|---|
+| `employeeShareCode`, `schemeOptions` | Answers to SKAT's code, and which schemes to offer for an answer and date |
+| `expandReport` | Events and people to rows, with derived fields filled in |
+| `checkReport` | All problems in a report, tied to the event and person they belong to |
+| `buildReportFile`, `buildReportBytes`, `reportFileName`, `reportTotals` | The file to upload, and the totals to compare with SKAT's receipt |
+| `importFile` | A 2278 file back into events |
+| `reverseRow`, `correctionPair` | The lines that cancel or replace an accepted line |
+| `serializeProject`, `parseProject` | The project file the user saves and reopens |
+
+### Calculations in scenario B
+
+- **Amount paid** = shares × price per share, in the trade currency. Can be overridden per person.
+- **Acquisition sum** = amount paid + amount taxed through payroll. Payroll tax is always in DKK,
+  so with a foreign trade currency the sum is worked out in DKK and converted back.
+- **Net settlement** = acquisition sum + costs. In a buyback (A), the seller's net is value − costs.
+
+### Import is lossless
+
+A row only becomes part of an event if expanding that event gives back the identical line.
+Everything else (corrections, amounts that don't add up, another company's rows, damaged rows)
+is kept verbatim as an `imported` event and written back unchanged. Rows may change order,
+because they are grouped by event, but none is altered or lost. A file holding several report
+types or years becomes one report for each, since each must be sent as its own file.
+
+### Assumptions to confirm with SKAT
+
+- The § 7 P codes (E, F, G/H) also apply to exercised options and warrants.
+- The amount on SKAT's receipt is the net settlement in DKK (felt 29), which `reportTotals` sums.

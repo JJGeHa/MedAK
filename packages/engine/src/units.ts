@@ -88,6 +88,11 @@ export function convertToDkk(amountOre: bigint, rate: bigint): bigint {
   return divRound(amountOre * rate, 100_000_000n);
 }
 
+/** Convert DKK øre to øre of a foreign currency; the reverse of convertToDkk. */
+export function convertFromDkk(dkkOre: bigint, rate: bigint): bigint {
+  return divRound(dkkOre * 100_000_000n, rate);
+}
+
 /** Market value in øre from a quantity and a price per share, both with 6 implied decimals. */
 export function marketValueOre(quantity: bigint, price: bigint): bigint {
   return divRound(quantity * price, 10_000_000_000n);

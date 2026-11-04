@@ -87,6 +87,7 @@ MedAK is in early development.
 - [x] Reverse-engineered SKAT's templates and guidance ([format spec](docs/2278-format.md))
 - [x] Engine: read, write and validate 2278 files for all four report types
 - [x] Validation mapped to SKAT's error codes, with Danish and English messages
+- [x] Event model: describe what happened and get the rows, codes and calculated amounts; import existing files losslessly
 - [x] CI, a weekly watch for new SKAT templates, and golden-file tests against SKAT's template ([testing](docs/testing.md))
 - [ ] Expected files produced with SKAT's Excel template (needs Windows + Excel; [how](docs/testing.md#producing-the-expected-files))
 - [ ] Guided web app for employee shares (B)
@@ -117,16 +118,15 @@ scripts/            Template watch and golden-file harness generator
 Using the engine directly:
 
 ```ts
-import { applyScenario, validateRows, formatIssue, buildFile, TEMPLATE_VERSION } from "@medak/engine";
+import { checkReport, buildReportBytes, formatIssue } from "@medak/engine";
 
-const rows = [applyScenario(row, "B")];
-const issues = validateRows(rows, { scenario: "B", incomeYear: "2026" });
+const issues = checkReport(project, report);   // tied to the event and person
 issues.forEach((issue) => console.log(formatIssue(issue, "en")));
 
-const file = buildFile({ sender, rows, version: TEMPLATE_VERSION.B });
+const bytes = buildReportBytes(project, report); // the file to upload
 ```
 
-See [packages/engine](packages/engine) for details.
+See [packages/engine](packages/engine) for a full example.
 
 ## Documentation
 

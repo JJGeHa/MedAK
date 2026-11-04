@@ -211,6 +211,54 @@ export const MESSAGES: Readonly<Record<RuleId, Text>> = {
     da: "Investorejerskab skal være tomt, når en investorfradragsfond indberetter.",
     en: "Prior investor ownership must be empty when an investor-deduction fund reports.",
   },
+  "sender.seInvalid": {
+    da: "Afsenderens cvr-/se-nr. skal være op til 8 cifre.",
+    en: "The sender's CVR/SE number must be up to 8 digits.",
+  },
+  "sender.nameTooLong": {
+    da: "Afsenderens navn må højst fylde {max} tegn i SKATs fil. Skriv en kortere udgave.",
+    en: "The sender's name can be at most {max} characters in SKAT's file. Enter a shorter version.",
+  },
+  "sender.addressTooLong": {
+    da: "Afsenderens adresse må højst fylde {max} tegn i SKATs fil. Skriv en kortere udgave.",
+    en: "The sender's address can be at most {max} characters in SKAT's file. Enter a shorter version.",
+  },
+  "model.unknownPerson": {
+    da: "Hændelsen henviser til en person, der ikke findes i personregistret.",
+    en: "The event refers to a person who is not in the people register.",
+  },
+  "model.unknownSecurity": {
+    da: "Hændelsen henviser til en aktie, der ikke findes.",
+    en: "The event refers to a share that does not exist.",
+  },
+  "model.rateRequired": {
+    da: "Angiv valutakursen for {value}: kroner pr. 100 på datoen.",
+    en: "Enter the exchange rate for {value}: DKK per 100 on the date.",
+  },
+  "model.schemeNotAvailable": {
+    da: "Vælg hvilke regler ordningen er omfattet af.",
+    en: "Choose which rules the scheme falls under.",
+  },
+  "model.invalidNumber": {
+    da: "\"{value}\" er ikke et gyldigt tal.",
+    en: "\"{value}\" is not a valid number.",
+  },
+  "model.priceRequired": {
+    da: "Angiv prisen pr. aktie.",
+    en: "Enter the price per share.",
+  },
+  "model.costsExceedValue": {
+    da: "Omkostningerne er større end kursværdien.",
+    en: "The costs are higher than the market value.",
+  },
+  "model.wrongEventKind": {
+    da: "Denne type hændelse hører ikke til denne type indberetning.",
+    en: "This type of event does not belong in this type of report.",
+  },
+  "model.noParticipants": {
+    da: "Der er ingen personer i hændelsen endnu.",
+    en: "There are no people in the event yet.",
+  },
 };
 
 /** The issue as a sentence in the given language, with the field's label filled in. */
