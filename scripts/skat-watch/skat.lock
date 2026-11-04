@@ -1,0 +1,7 @@
+# What MedAK's engine and golden files were built from. Updated with: scripts/skat-watch/check.sh --update
+# kind<TAB>name<TAB>sha256 or publication date<TAB>url
+guidance	oid=16096	2025-12-08 09:31	https://info.skat.dk/data.aspx?oid=16096
+guidance	oid=1918	2026-10-22 13:25	https://info.skat.dk/data.aspx?oid=1918
+guidance	oid=2289412	2026-09-24 13:33	https://info.skat.dk/data.aspx?oid=2289412
+template	aksa2278-likvidationsprovenu.xlsm	5609147ef11230d525d9f3a1a8a43f81d19dbdc47758f6a29f5d1872d3a1ff02	https://skat.dk/media/lp4obkiu/aksa2278-likvidationsprovenu.xlsm
+template	aksa2278-salg-af-aktier.xlsm	a07e70f76065409b11c55d2be9cad0bdc31a4f206010c5a07e22a2879bc287cb	https://skat.dk/media/lvcdd2tp/aksa2278-salg-af-aktier.xlsm

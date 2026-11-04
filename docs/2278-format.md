@@ -222,9 +222,12 @@ To be byte-compatible, the generator must reproduce this. ⚠ marks behaviour we
 6. **Signs:** entering a sign in any sign column copies it to all eight sign columns of
    that row.
 7. **Fixed/prefilled values** are written into a row when column B (OPSENR) is filled.
-8. **Auto-correction on "Dan fil":** decimals in an øre field are offered as ×100
+8. **Minimum length of 6-decimal fields:** "Dan fil" rejects a non-empty value in fields
+   19, 20 and 30 shorter than 7 digits, i.e. anything below 1 (`0,5` shares = `500000`).
+   Zero must be written as `0000000`. ⚠ Open question whether SKAT accepts quantities below 1.
+9. **Auto-correction on "Dan fil":** decimals in an øre field are offered as ×100
    (`12,5` → `1250`); decimals in a 6-decimal field as ×1,000,000. The user confirms each one.
-9. **Import ("Hent fil"):** reads `0001` (sender data) and every `2278` line by fixed
+10. **Import ("Hent fil"):** reads `0001` (sender data) and every `2278` line by fixed
    positions; other record types are ignored.
 
 ## Error list record `3921` (FTPs Gateway only)

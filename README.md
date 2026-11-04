@@ -7,6 +7,7 @@
 A free, open-source alternative to Skattestyrelsen's AKSA 2278 Excel template.
 Describe what happened (a grant, a buyback, an investment, a payout); MedAK writes the file.
 
+[![CI](https://github.com/JJGeHa/MedAK/actions/workflows/ci.yml/badge.svg)](https://github.com/JJGeHa/MedAK/actions/workflows/ci.yml)
 ![Status: early development](https://img.shields.io/badge/status-early%20development-orange)
 ![Languages: Dansk | English](https://img.shields.io/badge/sprog%20%2F%20language-Dansk%20%7C%20English-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-no%20runtime%20deps-3178c6)
@@ -86,6 +87,8 @@ MedAK is in early development.
 - [x] Reverse-engineered SKAT's templates and guidance ([format spec](docs/2278-format.md))
 - [x] Engine: read, write and validate 2278 files for all four report types
 - [x] Validation mapped to SKAT's error codes, with Danish and English messages
+- [x] CI, a weekly watch for new SKAT templates, and golden-file tests against SKAT's template ([testing](docs/testing.md))
+- [ ] Expected files produced with SKAT's Excel template (needs Windows + Excel; [how](docs/testing.md#producing-the-expected-files))
 - [ ] Guided web app for employee shares (B)
 - [ ] Corrections of earlier reports
 - [ ] Guided flows for A, C and D
@@ -97,14 +100,18 @@ Requires Node.js 22.12 or later.
 
 ```bash
 npm install
-npm test            # Vitest
-npm run typecheck   # TypeScript
+npm test               # Vitest, including golden files
+npm run typecheck      # TypeScript
+npm run skat:check     # has SKAT published a new template or guidance?
+npm run golden:harness # regenerate the Excel harness after editing golden cases (Node 22.18+)
 ```
 
 ```
 packages/
   engine/           Reads, writes and validates 2278 files. No runtime dependencies.
-docs/               Format spec, validation rules, data model, decisions
+docs/               Format spec, validation rules, data model, decisions, testing
+scripts/            Template watch and golden-file harness generator
+.github/workflows/  CI and the weekly SKAT template watch
 ```
 
 Using the engine directly:
@@ -129,6 +136,7 @@ See [packages/engine](packages/engine) for details.
 | [validation-rules.md](docs/validation-rules.md) | Every check, its severity, and the SKAT error code it anticipates |
 | [data-model.md](docs/data-model.md) | Which values are entered once per report, event or person |
 | [decisions.md](docs/decisions.md) | Scope, principles, stack and UX decisions |
+| [testing.md](docs/testing.md) | Unit tests, golden files from SKAT's template, and the template watch |
 
 Sources: SKAT's guidance for
 [medarbejderaktier and egne aktier](https://info.skat.dk/data.aspx?oid=2289412),
@@ -147,8 +155,9 @@ Sources: SKAT's guidance for
 
 ## Contributing
 
-Issues and pull requests are welcome. Especially valuable: files produced by SKAT's Excel
-template (with personal data removed) to test against, and experience from real uploads.
+Issues and pull requests are welcome. Especially valuable: running the golden-file harness in
+SKAT's Excel template on Windows ([how](docs/testing.md#producing-the-expected-files)), and
+experience from real uploads.
 
 ## Licence
 

@@ -81,7 +81,8 @@ const OVERRIDES: Readonly<Record<Scenario, Partial<Record<FieldKey, FieldRule>>>
     NTOAFRAFRVALFTG: fixed("+"),
     KURVAEBSKVALFTG: fixed("+"),
     OMKBSKVALFTG: fixed("+"),
-    AKTIPAPIRKURSPCT: fixed("0"),
+    // Written as the template's own literal: its "Dan fil" check wants at least 7 digits here.
+    AKTIPAPIRKURSPCT: fixed("0000000"),
     OMSVALKOD: fixed("DKK"),
     KURVAEOMSVALBLB: fixed("0"),
     OMKOMSVALBLB: fixed("0"),
