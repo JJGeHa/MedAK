@@ -1,6 +1,6 @@
 /**
- * The project file a user saves and reopens next year. It holds CPR numbers, so it stays on
- * the user's own computer; the engine never sends it anywhere.
+ * A project as a file, for export and backup. It holds CPR numbers in plain text, so whoever
+ * exports one is responsible for keeping it safe.
  */
 import { PROJECT_FORMAT, PROJECT_VERSION, type Project } from "./types.ts";
 

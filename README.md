@@ -51,9 +51,11 @@ flowchart LR
     D --> E["Upload in TastSelv Erhverv<br/><i>Øvrige indberetninger → Værdipapirer</i>"]
 ```
 
-**Your data stays on your device.** Everything runs in your browser: no server, no account,
-no upload to us. CPR numbers never leave your computer. You save your work as a file you
-keep, and open it again next year.
+**Saved, shared and protected.** Cases are saved to your account, so there are no files to keep
+track of, and next year starts from last year's company, shares and people. Colleagues and advisors
+can work in the same workspace. CPR numbers are encrypted before they reach the database, every
+account uses two-factor sign-in, and access rules are enforced by the database itself. See
+[security](docs/security.md).
 
 **Built around events, not rows.** A grant to 40 employees is one event (date, scheme,
 share, price) plus 40 short entries (who, how many shares, what they paid, what was taxed
@@ -90,27 +92,40 @@ MedAK is in early development.
 - [x] Event model: describe what happened and get the rows, codes and calculated amounts; import existing files losslessly
 - [x] CI, a weekly watch for new SKAT templates, and golden-file tests against SKAT's template ([testing](docs/testing.md))
 - [ ] Expected files produced with SKAT's Excel template (needs Windows + Excel; [how](docs/testing.md#producing-the-expected-files))
-- [ ] Guided web app for employee shares (B)
-- [ ] Corrections of earlier reports
+- [x] Web app with accounts, teams, saved cases and the guided employee-share flow (B), in Danish and English
+- [x] People import from spreadsheets, corrections of accepted reports, printable review, file history and SKAT error matching
+- [ ] Security review and legal groundwork before real data ([checklist](docs/security.md#before-real-data-can-be-entered))
 - [ ] Guided flows for A, C and D
+- [ ] Sending directly to SKAT over FTPs Gateway (needs access from eKapital)
 - [ ] Confirm encoding and file details with SKAT (eKapital), and test against real uploads
 
 ## Development
 
 Requires Node.js 22.12 or later.
 
+To run the app locally you need Docker, which runs a local Supabase with fictional data only:
+
 ```bash
 npm install
-npm test               # Vitest, including golden files
+npm run db:start       # local database, sign-in and a test mailbox at http://127.0.0.1:54324
+cp apps/web/.env.example apps/web/.env.local   # then fill it in, as described in the file
+npm run dev            # http://localhost:3100
+```
+
+```bash
+npm test               # Vitest, including golden files and database access rules
 npm run typecheck      # TypeScript
 npm run skat:check     # has SKAT published a new template or guidance?
 npm run golden:harness # regenerate the Excel harness after editing golden cases (Node 22.18+)
 ```
 
 ```
+apps/
+  web/              The web app (Next.js)
 packages/
   engine/           Reads, writes and validates 2278 files. No runtime dependencies.
-docs/               Format spec, validation rules, data model, decisions, testing
+supabase/           Database schema and access rules
+docs/               Format spec, validation rules, data model, decisions, security, testing
 scripts/            Template watch and golden-file harness generator
 .github/workflows/  CI and the weekly SKAT template watch
 ```
@@ -137,6 +152,7 @@ See [packages/engine](packages/engine) for a full example.
 | [data-model.md](docs/data-model.md) | Which values are entered once per report, event or person |
 | [decisions.md](docs/decisions.md) | Scope, principles, stack and UX decisions |
 | [testing.md](docs/testing.md) | Unit tests, golden files from SKAT's template, and the template watch |
+| [security.md](docs/security.md) | How data is protected, what isn't covered, and what must happen before real data |
 
 Sources: SKAT's guidance for
 [medarbejderaktier and egne aktier](https://info.skat.dk/data.aspx?oid=2289412),
@@ -152,6 +168,7 @@ Sources: SKAT's guidance for
 - **You remain responsible.** The reporting company is responsible for the correctness and
   timeliness of its report, whichever tool is used to produce it.
 - **Not affiliated with Skattestyrelsen.** MedAK is an independent project.
+- **In development.** Don't enter real CPR numbers yet; see the [checklist](docs/security.md#before-real-data-can-be-entered).
 
 ## Contributing
 
@@ -168,7 +185,8 @@ experience from real uploads.
 MedAK er et gratis alternativ til Skattestyrelsens Excel-skabelon AKSA 2278 til indberetning
 af medarbejderaktier, selskabers køb af egne aktier, investorfradrag og likvidationsprovenu.
 I stedet for 62 kolonner pr. person beskriver du, hvad der er sket, f.eks. en tildeling af
-aktier, og MedAK danner filen, som du uploader i TastSelv Erhverv. Alt foregår i din browser,
-og dine data (herunder cpr-numre) forlader aldrig din computer. Appen er på dansk og engelsk.
+aktier, og MedAK danner filen, som du uploader i TastSelv Erhverv. Sagerne gemmes på din konto,
+så du og dine kolleger kan arbejde videre næste år, og cpr-numre er krypterede. Appen er på dansk
+og engelsk. MedAK er under udvikling og må endnu ikke bruges med rigtige data.
 
 MedAK yder ikke skatterådgivning. Er du i tvivl om din situation, så søg professionel rådgivning.

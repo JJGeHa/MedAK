@@ -14,9 +14,8 @@ record layout.
 
 ## Principles
 
-1. **Personal data never leaves the user's device** in the free version. Parsing,
-   validation and file generation run in the browser. No backend is needed, which also
-   keeps hosting cost near zero.
+1. **Personal data is strongly protected, and encrypted at rest.** See "Accounts and storage"
+   below and [security.md](security.md).
 2. **Byte-compatible output.** For the same input, the generated file must match what
    SKAT's own template produces, except where the template is demonstrably wrong (e.g.
    silent truncation). Deviations are documented.
@@ -30,7 +29,19 @@ record layout.
 ## Stack (2026-11-04)
 
 TypeScript throughout. A dependency-free engine package (field rules as data, writer,
-reader, validator) and a static Vite + React web app with no backend.
+reader, validator, event model) and a Next.js web app, with Postgres and sign-in from Supabase.
+
+## Accounts and storage (2026-11-05)
+
+Accounts with a server database, replacing the earlier browser-only approach. Without a server,
+people would have to keep their own files, and working as a team wouldn't be possible.
+
+The app has workspaces (a company's finance team, or an advisor firm with several clients),
+companies within them, and team members with roles. Security is handled by mandatory two-factor,
+row-level security with no service-role key, and application-level encryption of personal data;
+see [security.md](security.md). **No real data until that document's checklist is done.**
+
+Sending directly to SKAT over FTPs Gateway is wanted later, but needs access from eKapital.
 
 ## User experience (2026-11-04)
 

@@ -196,6 +196,69 @@ function eventFromRow(row: Row, scenario: Scenario, securityId: string, personId
   }
 }
 
+/**
+ * Add an imported project's shares, people and reports to a saved one. The same share or person
+ * is reused rather than duplicated, so one employee stays one entry in the register.
+ */
+export function mergeProjects(into: Project, imported: Project): Project {
+  const withoutId = <T extends { id: string }>({ id: _id, ...rest }: T) => JSON.stringify(rest);
+  const securities = [...into.securities];
+  const persons = [...into.persons];
+  const securityIds = new Map<string, string>();
+  const personIds = new Map<string, string>();
+
+  for (const security of imported.securities) {
+    const existing = securities.find((s) => withoutId(s) === withoutId(security) || (s.name === security.name && (s.isin ?? "") === (security.isin ?? "")));
+    if (existing) {
+      securityIds.set(security.id, existing.id);
+    } else {
+      const id = freshId("s", securities);
+      securities.push({ ...security, id });
+      securityIds.set(security.id, id);
+    }
+  }
+  for (const person of imported.persons) {
+    const existing = persons.find((p) => (person.danishId ? p.danishId === person.danishId : withoutId(p) === withoutId(person)));
+    if (existing) {
+      personIds.set(person.id, existing.id);
+    } else {
+      const id = freshId("p", persons);
+      persons.push({ ...person, id });
+      personIds.set(person.id, id);
+    }
+  }
+
+  const eventIds: { id: string }[] = into.reports.flatMap((r) => [...r.events]);
+  const reportIds: { id: string }[] = [...into.reports];
+  const reports: Report[] = imported.reports.map((report) => {
+    const events = report.events.map((event): ReportEvent => {
+      const id = freshId("e", eventIds);
+      eventIds.push({ id });
+      if (event.kind === "imported") return { ...event, id };
+      const remapped = {
+        ...event,
+        id,
+        securityId: securityIds.get(event.securityId) ?? event.securityId,
+        participants: event.participants.map((p: { personId: string }) => ({ ...p, personId: personIds.get(p.personId) ?? p.personId })),
+      };
+      return remapped as unknown as ReportEvent;
+    });
+    const id = freshId("r", reportIds);
+    reportIds.push({ id });
+    return { ...report, id, events };
+  });
+
+  return { ...into, securities, persons, reports: [...into.reports, ...reports] };
+}
+
+/** The next unused id with a prefix, e.g. "p7". */
+export function freshId(prefix: string, taken: readonly { id: string }[]): string {
+  const used = new Set(taken.map((t) => t.id));
+  let n = taken.length + 1;
+  while (used.has(`${prefix}${n}`)) n++;
+  return `${prefix}${n}`;
+}
+
 export interface ImportResult {
   readonly project: Project;
   /** Rows kept verbatim because they could not be described as an event without changing them. */

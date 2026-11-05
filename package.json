@@ -5,12 +5,20 @@
   "license": "Apache-2.0",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "golden:harness": "node scripts/golden/make-harness.ts",
-    "skat:check": "scripts/skat-watch/check.sh"
+    "skat:check": "scripts/skat-watch/check.sh",
+    "dev": "npm run dev -w @medak/web",
+    "db:start": "supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,supavisor",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset"
+  },
+  "devDependencies": {
+    "supabase": "latest"
   }
 }

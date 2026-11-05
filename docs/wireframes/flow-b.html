@@ -650,7 +650,7 @@ function render() {
   document.getElementById("main").innerHTML = screens[state.screen]();
   document.getElementById("help").innerHTML = help();
   document.getElementById("steps").innerHTML = steps();
-  document.getElementById("privacy").innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${tr("Dine data bliver på denne computer", "Your data stays on this computer")}`;
+  document.getElementById("privacy").innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${tr("Krypteret og beskyttet med to-faktor", "Encrypted and protected by two-factor")}`;
   document.getElementById("notes-label").textContent = tr("Designnoter", "Design notes");
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
 }

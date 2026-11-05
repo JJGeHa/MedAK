@@ -24,5 +24,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      # Includes the golden-file tests against output from SKAT's Excel template.
+      # Includes golden files from SKAT's Excel template, and the database's access rules.
       - run: npm test
+      # Placeholder values: this only checks that the app builds.
+      - run: npm run build -w @medak/web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder

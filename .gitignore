@@ -5,3 +5,11 @@ research/raw/
 .DS_Store
 node_modules/
 dist/
+
+# Next.js and local secrets
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.local
+.env*.local
