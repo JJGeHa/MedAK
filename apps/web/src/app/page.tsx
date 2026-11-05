@@ -13,6 +13,7 @@ const display = Schibsted_Grotesk({ subsets: ["latin"], weight: ["400", "500", "
 
 const REPO = "https://github.com/JJGeHa/MedAK";
 const live = process.env.NEXT_PUBLIC_MEDAK_LIVE === "1";
+const contact = process.env.MEDAK_CONTACT_EMAIL;
 
 export const metadata: Metadata = {
   title: "MedAK: employee shares reporting to SKAT",
@@ -140,7 +141,9 @@ export default async function Landing() {
               <li>{t("Gennemgang hos en autoriseret rådgiver, som tager ansvaret for indberetningen", "Review by an authorised adviser, who takes responsibility for the report")}</li>
               <li>{t("Support, når du sidder fast", "Support when you get stuck")}</li>
             </ul>
-            <a href={REPO} className="lp-repo">{t("Følg med på GitHub", "Follow progress on GitHub")}</a>
+            {contact
+              ? <a href={`mailto:${contact}?subject=MedAK`} className="lp-repo">{t("Skriv til os, hvis du er interesseret", "Write to us if you're interested")}</a>
+              : <a href={REPO} className="lp-repo">{t("Følg med på GitHub", "Follow progress on GitHub")}</a>}
           </div>
         </div>
       </section>

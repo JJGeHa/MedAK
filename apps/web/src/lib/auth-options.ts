@@ -17,3 +17,8 @@ export function ssoDomain(email: string): string | null {
 
 export const oauthProviders = parseOAuthProviders(process.env.NEXT_PUBLIC_MEDAK_OAUTH);
 export const ssoEnabled = process.env.NEXT_PUBLIC_MEDAK_SSO === "1";
+/**
+ * Whether sign-in emails carry a code. Supabase only allows our templates, which include one, once
+ * an installation has its own email provider. Set to "0" until then.
+ */
+export const emailCodes = process.env.NEXT_PUBLIC_MEDAK_EMAIL_CODES !== "0";

@@ -46,6 +46,14 @@ user passes two-factor, and the database refuses case data until then, so no met
   against a real identity provider. It can't yet be made mandatory for a company's users, and it
   still asks for MedAK's own two-factor even if the identity provider has its own.
 
+## The hosted demo
+
+A temporary demo runs on Vercel and a separate Supabase project in the EU, for made-up data only. It
+keeps the development banner and stays out of search engines. It uses Supabase's built-in email until
+it has its own provider, so emails reach only members of the Supabase organisation, at a low hourly
+limit, with Supabase's default text. Those emails have no code, so `NEXT_PUBLIC_MEDAK_EMAIL_CODES=0`
+hides the code step. Its master key is its own and not backed up, so losing it only loses demo data.
+
 ## What this does not protect against
 
 Be clear about these. Each is a deliberate trade-off or a known gap.

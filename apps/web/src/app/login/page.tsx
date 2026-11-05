@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, Suspense, useState } from "react";
 import { TextField } from "@/components/fields";
 import { LangSwitch } from "@/components/LangSwitch";
-import { type OAuthProvider, oauthProviders, ssoDomain, ssoEnabled } from "@/lib/auth-options";
+import { emailCodes, type OAuthProvider, oauthProviders, ssoDomain, ssoEnabled } from "@/lib/auth-options";
 import { safeNext } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/browser";
@@ -30,7 +30,9 @@ function LoginForm() {
   const linkFailed = params.get("error") === "link";
   const [error, setError] = useState<string | null>(
     linkFailed
-      ? t("Linket er udløbet, brugt eller åbnet i en anden browser. Bed om et nyt, eller brug koden fra mailen.", "The link has expired, been used or was opened in another browser. Ask for a new one, or use the code from the email.")
+      ? emailCodes
+        ? t("Linket er udløbet, brugt eller åbnet i en anden browser. Bed om et nyt, eller brug koden fra mailen.", "The link has expired, been used or was opened in another browser. Ask for a new one, or use the code from the email.")
+        : t("Linket er udløbet, brugt eller åbnet i en anden browser. Bed om et nyt, og åbn det i denne browser.", "The link has expired, been used or was opened in another browser. Ask for a new one and open it in this browser.")
       : null,
   );
   const [sent, setSent] = useState<Sent>(null);
@@ -78,7 +80,7 @@ function LoginForm() {
         setBusy(false);
         return;
       }
-      setSent("code");
+      setSent(emailCodes ? "code" : "linkOnly");
       setBusy(false);
       return;
     }
@@ -104,7 +106,7 @@ function LoginForm() {
       setBusy(false);
       return;
     }
-    setSent("code");
+    setSent(emailCodes ? "code" : "linkOnly");
     setBusy(false);
   }
 
@@ -201,7 +203,7 @@ function LoginForm() {
               ) : null}
               {error ? <p className="error-text" role="alert">{error}</p> : null}
               <button className="btn primary" type="submit" disabled={busy} style={{ justifyContent: "center" }}>{submitLabel}</button>
-              {linkFailed && canUseMethods && method === "link" ? (
+              {emailCodes && linkFailed && canUseMethods && method === "link" ? (
                 <button type="button" className="btn link" style={{ alignSelf: "center" }} disabled={!email.includes("@")} onClick={() => { setSent("code"); setError(null); }}>
                   {t("Skriv e-mail ovenfor, og brug koden fra mailen", "Enter your email above, then use the code from the email")}
                 </button>
