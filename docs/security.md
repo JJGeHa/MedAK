@@ -11,7 +11,7 @@ and what must be done **before any real data is entered**.
 
 | Layer | What happens |
 |---|---|
-| **Sign-in** | Email and password (at least 12 characters, letters and digits), confirmed email, and **mandatory two-factor (TOTP)** for every account |
+| **Sign-in** | An emailed link or code, a password (at least 12 characters, letters and digits), or Google, Microsoft or company single sign-on where set up. Whichever is used, it is only the first step: **two-factor (TOTP) is mandatory** for every account |
 | **Access control** | Row-level security in Postgres on every table, using the signed-in user's own session. The app has **no service-role key**, so a bug in the app can't reach another workspace's data. Case data also requires a two-factor session at database level |
 | **Encryption at rest** | Personal data is encrypted by the app server with AES-256-GCM before it reaches the database. Each workspace has its own data key, itself encrypted by a master key held only in the server's environment. A copy of the database alone reveals no CPR numbers |
 | **Tamper binding** | Each ciphertext is bound to its workspace and company, so it can't be moved elsewhere and still decrypt |
@@ -25,6 +25,26 @@ and what must be done **before any real data is entered**.
 The rules are tested against the real migration in
 [`apps/web/test/rls.test.ts`](../apps/web/test/rls.test.ts) and
 [`crypto.test.ts`](../apps/web/test/crypto.test.ts), on every push.
+
+## Sign-in methods
+
+Every method only proves the first factor. The session stays at the lower assurance level until the
+user passes two-factor, and the database refuses case data until then, so no method can skip it.
+
+- **Email link or code (magic link).** Removes the password, so there is none to reuse or phish. It
+  moves the risk to the mailbox: someone who controls the mailbox passes the first step, but not
+  two-factor. Links and codes last 15 minutes and work once. A link only works in the browser that
+  asked for it; the code covers another device, and mail scanners that use up links by opening them.
+  The response is the same whether or not an address has an account.
+- **Password.** Still offered for those who prefer it.
+- **Google and Microsoft (OAuth).** Off until set up: create a client with the provider, add its ID
+  and secret in Supabase, then list the providers in `NEXT_PUBLIC_MEDAK_OAUTH`. For Microsoft,
+  restrict the tenant where possible and require a verified email, because accounts are linked by
+  email address. Not yet tested against a real provider.
+- **Company single sign-on (SAML).** Off until set up: needs a paid Supabase plan, the customer's
+  identity provider registered with `supabase sso add`, and `NEXT_PUBLIC_MEDAK_SSO=1`. Not yet tested
+  against a real identity provider. It can't yet be made mandatory for a company's users, and it
+  still asks for MedAK's own two-factor even if the identity provider has its own.
 
 ## What this does not protect against
 
@@ -66,7 +86,10 @@ The app must not hold real CPR numbers until these are done.
 - [ ] Two-factor recovery. Today a lost device means support must reset it, and that process needs
       strong identity checks. Consider MitID login through a broker, which would replace passwords
 - [ ] Leaked-password protection, sign-in rate limits, and shorter session lifetimes in Supabase
-- [ ] Email through a real provider, with SPF/DKIM
+- [ ] Email through a real provider, with SPF/DKIM. Sign-in now depends on this email arriving
+- [ ] Copy the local auth settings to the hosted project, as `config.toml` doesn't apply there: 15-minute
+      link lifetime, 60 seconds between emails, and both email templates (the code needs them)
+- [ ] Test Google, Microsoft and SAML sign-in with real providers, including accepting an invitation
 - [ ] Dependency and secret scanning in CI; alerts on unusual access; logs checked for personal data
 - [ ] Encrypted backups, with restore tested
 

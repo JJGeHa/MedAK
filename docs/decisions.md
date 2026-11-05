@@ -43,6 +43,12 @@ see [security.md](security.md). **No real data until that document's checklist i
 
 Sending directly to SKAT over FTPs Gateway is wanted later, but needs access from eKapital.
 
+## Sign-in (2026-11-05)
+
+Email link or code is the default, with passwords, Google, Microsoft and SAML single sign-on as
+alternatives. None of them replaces two-factor, which stays mandatory because of the CPR numbers.
+The optional methods are switched on by configuration, so anyone running MedAK can use them.
+
 ## User experience (2026-11-04)
 
 1. **Better than the Excel template, not a copy of it.** A web spreadsheet with friendlier

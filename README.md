@@ -94,6 +94,7 @@ MedAK is in early development.
 - [ ] Expected files produced with SKAT's Excel template (needs Windows + Excel; [how](docs/testing.md#producing-the-expected-files))
 - [x] Web app with accounts, teams, saved cases and the guided employee-share flow (B), in Danish and English
 - [x] People import from spreadsheets, corrections of accepted reports, printable review, file history and SKAT error matching
+- [x] Landing page, and sign-in by email link or code, with Google, Microsoft and single sign-on ready to set up; two-factor is always required
 - [ ] Security review and legal groundwork before real data ([checklist](docs/security.md#before-real-data-can-be-entered))
 - [ ] Guided flows for A, C and D
 - [ ] Sending directly to SKAT over FTPs Gateway (needs access from eKapital)
