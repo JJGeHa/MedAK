@@ -10,7 +10,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ compan
   if (!loaded) notFound();
   return (
     <CaseProvider companyId={companyId} project={loaded.project} revision={loaded.revision}>
-      <CompanyView company={loaded.company} workspace={loaded.workspace} submissions={loaded.submissions} />
+      <CompanyView company={loaded.company} workspace={loaded.workspace} submissions={loaded.submissions} contact={process.env.MEDAK_CONTACT_EMAIL} />
     </CaseProvider>
   );
 }

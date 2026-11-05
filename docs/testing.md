@@ -50,6 +50,9 @@ You need Windows with desktop Excel (the guidance notes the template is unreliab
 6. Repeat step 4–5 for every macro. Don't save the workbook itself.
 7. Run `npm test`. Each expected file now runs two tests instead of being skipped.
 
+`d-liquidation` has no expected file, because liquidation proceeds has no guided flow for now (see
+[decisions](decisions.md)). Its two tests stay skipped until someone needs it.
+
 If a golden test fails, the message names the line, position and field that differ. Decide whether
 the engine is wrong (fix the engine) or the template has a quirk worth documenting (record it in
 [2278-format.md](2278-format.md) and decide whether the engine should copy it).

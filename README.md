@@ -68,19 +68,20 @@ MedAK is built for Danish start-ups and for Danish subsidiaries of international
 
 ## Report types
 
-All four report types below use the same file format, so MedAK supports them with one engine.
+These report types use the same file format, so MedAK supports them with one engine.
 
 | | Report | Legal basis | Status |
 |---|---|---|---|
 | **B** | Employee shares, options, warrants, RSUs, matching shares | SIL § 8; LL §§ 7 P, 16, 28 | First guided flow, in design |
 | **A** | Company buying back its own shares | SIL § 28 | Engine ready |
 | **C** | Capital contributions giving investorfradrag | SIL §§ 29 a, 29 b | Engine ready |
-| **D** | Liquidation proceeds | SIL § 28 a | Engine ready. See note below |
+| **D** | Liquidation proceeds | SIL § 28 a | No guided flow planned. See note below |
 
 > **Liquidation proceeds:** for most liquidations, SKAT's own single-entry form
-> (*Enkeltindberetning* in TastSelv Erhverv) is the simplest route, and MedAK will point you
-> there. A file is needed only when the shares are listed, or when someone other than the
-> liquidated company paid out the proceeds.
+> (*Enkeltindberetning* in TastSelv Erhverv) is the simplest route, so MedAK points you there
+> instead of building a guide. A file is needed only when the shares are listed, or when someone
+> other than the liquidated company paid out the proceeds. The engine can read and write these
+> files, but its output hasn't been compared with SKAT's liquidation template.
 
 ## Status
 
@@ -91,12 +92,12 @@ MedAK is in early development.
 - [x] Validation mapped to SKAT's error codes, with Danish and English messages
 - [x] Event model: describe what happened and get the rows, codes and calculated amounts; import existing files losslessly
 - [x] CI, a weekly watch for new SKAT templates, and golden-file tests against SKAT's template ([testing](docs/testing.md))
-- [ ] Expected files produced with SKAT's Excel template (needs Windows + Excel; [how](docs/testing.md#producing-the-expected-files))
+- [x] Engine output matches SKAT's Excel template byte for byte in all six golden cases for A, B and C
 - [x] Web app with accounts, teams, saved cases and the guided employee-share flow (B), in Danish and English
 - [x] People import from spreadsheets, corrections of accepted reports, printable review, file history and SKAT error matching
 - [x] Landing page, and sign-in by email link or code, with Google, Microsoft and single sign-on ready to set up; two-factor is always required
 - [ ] Security review and legal groundwork before real data ([checklist](docs/security.md#before-real-data-can-be-entered))
-- [ ] Guided flows for A, C and D
+- [ ] Guided flows for A and C
 - [ ] Sending directly to SKAT over FTPs Gateway (needs access from eKapital)
 - [ ] Confirm encoding and file details with SKAT (eKapital), and test against real uploads
 

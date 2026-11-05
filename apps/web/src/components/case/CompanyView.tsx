@@ -15,7 +15,7 @@ import { SaveIndicator, useCase } from "./CaseProvider";
 
 type Tab = "reports" | "people" | "files" | "company";
 
-export function CompanyView({ company, workspace, submissions }: { company: CompanyRow; workspace: WorkspaceRow; submissions: SubmissionRow[] }) {
+export function CompanyView({ company, workspace, submissions, contact }: { company: CompanyRow; workspace: WorkspaceRow; submissions: SubmissionRow[]; contact?: string | undefined }) {
   const { t } = useT();
   const [tab, setTab] = useState<Tab>("reports");
   const tabs: [Tab, string][] = [["reports", t("Indberetninger", "Reports")], ["people", t("Personer og aktier", "People and shares")], ["files", t("Historik", "History")], ["company", t("Selskab", "Company")]];
@@ -29,7 +29,7 @@ export function CompanyView({ company, workspace, submissions }: { company: Comp
       <div className="tabs" role="tablist">
         {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}
       </div>
-      {tab === "reports" ? <ReportsTab submissions={submissions} /> : null}
+      {tab === "reports" ? <ReportsTab submissions={submissions} contact={contact} /> : null}
       {tab === "people" ? <PeopleTab /> : null}
       {tab === "files" ? <HistoryTab submissions={submissions} /> : null}
       {tab === "company" ? <CompanyTab company={company} workspace={workspace} /> : null}
@@ -37,7 +37,7 @@ export function CompanyView({ company, workspace, submissions }: { company: Comp
   );
 }
 
-function ReportsTab({ submissions }: { submissions: SubmissionRow[] }) {
+function ReportsTab({ submissions, contact }: { submissions: SubmissionRow[]; contact?: string | undefined }) {
   const { t } = useT();
   const router = useRouter();
   const { project, update, companyId, flush } = useCase();
@@ -130,10 +130,13 @@ function ReportsTab({ submissions }: { submissions: SubmissionRow[] }) {
           <div className="card">
             <h3>{t("Likvidationsprovenu", "Liquidation proceeds")}</h3>
             <p className="small muted">{t(
-              "For de fleste er SKATs eget enkeltindberetningsskema i TastSelv Erhverv det nemmeste. Du skal kun bruge en fil, hvis aktierne er optaget til handel, eller hvis en anden end selskabet har udbetalt provenuet.",
-              "For most companies, SKAT's own single-entry form in TastSelv Erhverv is easiest. You only need a file if the shares are listed, or if someone other than the company paid out the proceeds.",
+              "MedAK har ikke en guide til dette, fordi SKATs eget enkeltindberetningsskema i TastSelv Erhverv er det nemmeste for de fleste. Skemaet dækker ikke børsnoterede aktier, eller hvis en anden end selskabet har udbetalt provenuet. Så skal du bruge SKATs Excel-ark.",
+              "MedAK has no guide for this, because SKAT's own single-entry form in TastSelv Erhverv is easiest for most companies. The form doesn't cover listed shares, or proceeds paid out by someone other than the company. For those, use SKAT's Excel template.",
             )}</p>
-            <div className="foot"><a className="small" href="https://info.skat.dk/data.aspx?oid=2462530" target="_blank" rel="noopener noreferrer">{t("Sådan bruger du SKATs skema", "How to use SKAT's form")}</a></div>
+            <div className="foot row">
+              <a className="small" href="https://info.skat.dk/data.aspx?oid=2462530" target="_blank" rel="noopener noreferrer">{t("Sådan bruger du SKATs skema", "How to use SKAT's form")}</a>
+              {contact ? <a className="small" href={`mailto:${contact}?subject=${encodeURIComponent("MedAK: likvidationsprovenu")}`}>{t("Mangler du dette i MedAK? Skriv til os", "Need this in MedAK? Write to us")}</a> : null}
+            </div>
           </div>
           <div className="card">
             <h3>{t("Køb af egne aktier", "Share buyback")}</h3>

@@ -113,6 +113,10 @@ export default async function Landing() {
           "SKATs skabelon beder dig udfylde hver række i et regneark, med samme dato og kurs for hver medarbejder. I MedAK skriver du en begivenhed én gang og tilføjer de personer, den gælder. Du kan indsætte dem fra et regneark, rette en indberetning senere og slå SKATs fejlliste op på den rigtige person.",
           "SKAT's template has you fill in a spreadsheet row by row, with the same date and price for every employee. In MedAK you enter an event once and add the people it covers. You can paste them from a spreadsheet, correct a report later and match SKAT's error list to the right person.",
         )}</p>
+        <p className="lp-after lp-note">{t(
+          "Skal du indberette likvidationsprovenu? Brug SKATs eget enkeltindberetningsskema i TastSelv Erhverv. Det er nemmere for de fleste, så MedAK har ikke en guide til det.",
+          "Reporting liquidation proceeds? Use SKAT's own single-entry form in TastSelv Erhverv. It's easier for most companies, so MedAK has no guide for it.",
+        )}{contact ? <> <a href={`mailto:${contact}?subject=${encodeURIComponent("MedAK: likvidationsprovenu")}`}>{t("Skriv til os, hvis du mangler det.", "Write to us if you need it.")}</a></> : null}</p>
       </section>
 
       <section className="lp-section lp-versions" id="versions">

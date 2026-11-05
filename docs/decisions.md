@@ -12,6 +12,12 @@ are per-field rules (fixed values, allowed codes, hidden fields). See
 Out of scope: IFPA 2237 (investment funds' liquidation proceeds), which is a different
 record layout.
 
+**Liquidation proceeds (D) gets no guided flow for now (2026-11-05).** SKAT's own single-entry form
+is easier for most liquidations, and MedAK only adds what is a real improvement on it. The app says
+so and links to the form, with a way to tell us it's missing. We add it only if enough people ask
+and it would be a real improvement. The engine keeps its D support, so such files can still be
+imported, but it hasn't been compared with SKAT's liquidation template.
+
 ## Principles
 
 1. **Personal data is strongly protected, and encrypted at rest.** See "Accounts and storage"
@@ -70,17 +76,16 @@ The optional methods are switched on by configuration, so anyone running MedAK c
 ## Flows and guidance (2026-11-04)
 
 1. **B first.** The employee-share flow (medarbejderaktier, options, warrants, RSUs) is
-   designed and polished first. A, C and D follow.
+   designed and polished first. A and C follow.
 2. **"Do I need to report?" guidance is never tax advice.** Wherever the app explains
    whether or what to report (e.g. cash settlement of the difference, matching shares, a
    foreign parent granting shares), it states clearly, in both languages, that this is
    general information and not tax advice, and that the user should seek professional
    advice if in any doubt. Each explanation links to SKAT's guidance.
-3. **Liquidation (D) points to SKAT's own single-entry form first.** SKAT's
-   *Enkeltindberetning* in TastSelv Erhverv (Øvrige indberetninger → Værdipapirer → AKSA →
-   Enkeltindberetning) is simpler for most liquidations. The D flow starts by sending users
-   there. MedAK's file is offered for the cases the form does not cover (guidance section
-   3.3):
+3. **Liquidation (D) points to SKAT's own single-entry form.** SKAT's *Enkeltindberetning* in
+   TastSelv Erhverv (Øvrige indberetninger → Værdipapirer → AKSA → Enkeltindberetning) is simpler
+   for most liquidations. It doesn't cover these cases (guidance section 3.3), where MedAK points
+   to SKAT's Excel template:
    - the shares are admitted to trading on a regulated market or MTF, or
    - someone other than the liquidated company paid out the proceeds on its behalf.
 

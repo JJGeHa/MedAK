@@ -93,6 +93,8 @@
 .lp-line mark.lp-on { background: var(--cobalt); color: #fff; font-weight: 600; }
 .lp-gap { display: inline-block; margin: 2px 4px; padding: 0 8px; border: 1px dashed currentColor; border-radius: 3px; font-size: 0.92em; opacity: 0.8; }
 .lp-after { margin-top: clamp(24px, 4vw, 48px); max-width: 44rem; color: var(--soft); }
+.lp-note { margin-top: 16px; font-size: 0.92rem; }
+.lp-note a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 900px) { .lp-explain { grid-template-columns: minmax(0, 1fr); } }
 
 /* Versions */
